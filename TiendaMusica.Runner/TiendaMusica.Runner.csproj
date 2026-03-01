@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\TiendaMusica.Application\TiendaMusica.Application.csproj" />
+  </ItemGroup>
+
 </Project>
