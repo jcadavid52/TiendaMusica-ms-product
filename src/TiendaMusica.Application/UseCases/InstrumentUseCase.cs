@@ -29,7 +29,7 @@ namespace TiendaMusica.Application.UseCases
             catch (Exception ex)
             {
                 var error = ex.ToString();
-                results.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos {error}");
+                results.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-UseCase {error}");
             }
 
             return results;

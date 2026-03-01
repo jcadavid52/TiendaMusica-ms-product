@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="src/TiendaMusica.Application/TiendaMusica.Application.csproj" Id="f12367a9-386e-48e2-813d-5b0bdc1cfb4e" />
   <Project Path="src/TiendaMusica.Domain/TiendaMusica.Domain.csproj" Id="0e998953-0b03-4b8f-a9c0-3c42308b8537" />
-  <Project Path="TiendaMusica.Runner/TiendaMusica.Runner.csproj" Id="4a94e869-08f2-4d98-b5c6-c7028dd377dc" />
+  <Project Path="src/TiendaMusica.Infrastructure.OutpointAdapter/TiendaMusica.Infrastructure.OutpointAdapter.csproj" Id="cef5e1c0-a997-4c0e-9c02-6f3239cac185" />
+  <Project Path="src/TiendaMusica.Runner/TiendaMusica.Runner.csproj" Id="7a2d3e73-9fe6-4089-8233-9854131eca9b" />
 </Solution>
