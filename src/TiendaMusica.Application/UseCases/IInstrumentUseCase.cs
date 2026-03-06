@@ -3,7 +3,7 @@ using TiendaMusica.Domain.Models.Result;
 
 namespace TiendaMusica.Application.UseCases
 {
-    internal interface IInstrumentUseCase
+    public interface IInstrumentUseCase
     {
         Results<IList<Instrument>> GetAll();
     }

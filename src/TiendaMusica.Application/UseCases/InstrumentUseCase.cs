@@ -25,6 +25,8 @@ namespace TiendaMusica.Application.UseCases
                     results.AddErrors(results.Errors);
                 }
 
+                results.Result = result.Result;
+
             }
             catch (Exception ex)
             {
