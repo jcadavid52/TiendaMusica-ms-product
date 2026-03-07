@@ -12,4 +12,8 @@
     <ProjectReference Include="..\TiendaMusica.Infrastructure.OutpointAdapter\TiendaMusica.Infrastructure.OutpointAdapter.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="LocalDatabase\" />
+  </ItemGroup>
+
 </Project>

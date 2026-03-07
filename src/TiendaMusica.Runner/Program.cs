@@ -5,7 +5,7 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Injections;
 var builder = WebApplication.CreateBuilder(args);
 #region Inyecciones de servicios
 builder.Services.AddApplicationInjections();
-builder.Services.AddOutpointAdapterInjections();
+builder.Services.AddOutpointAdapterInjections(builder.Configuration, builder.Environment.EnvironmentName);
 builder.Services.AddEntrypointInjections(builder.Configuration);
 #endregion
 
