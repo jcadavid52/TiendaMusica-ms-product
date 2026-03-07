@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 {
@@ -21,6 +22,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             services.AddAutoMapper(cfg => { }, assembly);
             services.AddHealthChecks();
             services.AddSwaggerInjections();
+            services.AddSingleton<IRestTools, RestTools>();
+
 
             return services;
         }

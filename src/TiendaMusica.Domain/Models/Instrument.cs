@@ -16,7 +16,7 @@ namespace TiendaMusica.Domain.Models
 
             if(name == Name)
             {
-                results.AddError(ErrorCode.VALIDATION_ERROR, $"Ya hay un instrumento con el nombre '{name}'");
+                results.AddError(ErrorCode.CONFLICT_ERROR, $"Ya hay un instrumento con el nombre '{name}'");
             }
             
             return results;

@@ -2,7 +2,7 @@
 {
     public enum ErrorCode
     {
-        VALIDATION_ERROR,
         SERVER_ERROR,
+        CONFLICT_ERROR
     }
 }

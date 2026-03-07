@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TiendaMusica.Application.UseCases;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 {
     [ApiController]
@@ -12,14 +13,17 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
     {
         private readonly IInstrumentUseCase _instrumentUseCase;
         private readonly IMapper _mapper;
+        private readonly IRestTools _restTools;
 
         public InstrumentController(
             IInstrumentUseCase instrumentUseCase,
-            IMapper mapper
+            IMapper mapper,
+            IRestTools restTools
             )
         {
             _instrumentUseCase = instrumentUseCase;
             _mapper = mapper;
+            _restTools = restTools;
         }
         [HttpGet]
         public IActionResult GetAll()
@@ -33,17 +37,18 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                 if (instruments.HasErrors)
                 {
                     response.AddErrors(instruments.Errors);
-                    return BadRequest(response);
                 }
 
-                response.Result = instruments.Result.Select(x =>_mapper.Map<InstrumentResponse>(x)).ToList();
+                response.Result = instruments.Result.Select(x => _mapper.Map<InstrumentResponse>(x)).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var error = ex.ToString();
                 response.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-Endpoint-GetAll {error}");
             }
-            return Ok(response);
+
+            int statusCode = _restTools.GetHttpStatusCode(response.Errors);
+            return StatusCode(statusCode, response);
         }
     }
 }

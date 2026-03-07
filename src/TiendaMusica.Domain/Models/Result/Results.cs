@@ -10,12 +10,6 @@
             _errors = new List<TiendaMusicaError>();
         }
 
-        public Results(T result)
-        {
-            Result = result;
-            _errors = new List<TiendaMusicaError>();
-        }
-
         public List<TiendaMusicaError> Errors 
         {
             get
@@ -45,6 +39,13 @@
             }
         }
 
+        public Results<T> AddError(ErrorCode errorCode, string message)
+        {
+            var error = new TiendaMusicaError(errorCode, message);
+            AddError(error);
+            return this;
+        }
+
         public Results<T> AddErrors(IEnumerable<TiendaMusicaError> errors)
         {
             if(errors != null)
@@ -52,13 +53,6 @@
                 Errors.AddRange(errors);
             }
 
-            return this;
-        }
-
-        public Results<T> AddError(ErrorCode errorCode,string message)
-        {
-            var error = new TiendaMusicaError(errorCode,message);
-            AddError(error);
             return this;
         }
 

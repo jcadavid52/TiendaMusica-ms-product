@@ -4,4 +4,5 @@
   <Project Path="src/TiendaMusica.Infrastructure.Entrypoint/TiendaMusica.Infrastructure.Entrypoint.csproj" />
   <Project Path="src/TiendaMusica.Infrastructure.OutpointAdapter/TiendaMusica.Infrastructure.OutpointAdapter.csproj" Id="cef5e1c0-a997-4c0e-9c02-6f3239cac185" />
   <Project Path="src/TiendaMusica.Runner/TiendaMusica.Runner.csproj" Id="7a2d3e73-9fe6-4089-8233-9854131eca9b" />
+  <Project Path="src/TiendaMusica.Utilities/TiendaMusica.Utilities.csproj" Id="2c446e3a-5540-46ac-8ffd-b83beb5968b6" />
 </Solution>
