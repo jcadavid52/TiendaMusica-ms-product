@@ -36,5 +36,28 @@ namespace TiendaMusica.Application.UseCases
 
             return results;
         }
+        public Results<Instrument> Create(Instrument instrument)
+        {
+            var results = new Results<Instrument>();
+
+            try
+            {
+                var result = _instrumentsRepositoryPorts.Create(instrument);
+
+                if (!result.IsSuccess)
+                {
+                    results.AddErrors(result.Errors);
+                }
+
+                results.Result = result.Result;
+            }
+            catch (Exception ex)
+            {
+                var error = ex.ToString();
+                results.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumentos-UseCase {error}");
+            }
+
+            return results;
+        }
     }
 }

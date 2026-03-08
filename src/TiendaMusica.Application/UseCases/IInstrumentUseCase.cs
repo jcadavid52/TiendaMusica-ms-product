@@ -6,5 +6,6 @@ namespace TiendaMusica.Application.UseCases
     public interface IInstrumentUseCase
     {
         Results<IList<Instrument>> GetAll();
+        Results<Instrument> Create(Instrument instrument);
     }
 }

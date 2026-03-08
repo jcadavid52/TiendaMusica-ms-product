@@ -6,6 +6,11 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Re
 {
     internal class SqlServerInstrumentsRepositoryAdapter : IInstrumentsRepositoryPort
     {
+        public Results<Instrument> Create(Instrument instrument)
+        {
+            throw new NotImplementedException();
+        }
+
         public Results<IList<Instrument>> GetAll()
         {
             var result = new Results<IList<Instrument>>();

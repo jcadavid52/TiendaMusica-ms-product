@@ -9,6 +9,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers
         public RestMappingProfile()
         {
             CreateMap<Instrument, InstrumentResponse>();
+            CreateMap<InstrumentRequest,Instrument>();
         }
     }
 }

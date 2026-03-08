@@ -6,5 +6,6 @@ namespace TiendaMusica.Application.Ports
     public interface IInstrumentsRepositoryPort
     {
         Results<IList<Instrument>> GetAll();
+        Results<Instrument> Create(Instrument instrument);
     }
 }

@@ -3,6 +3,7 @@
     public enum ErrorCode
     {
         SERVER_ERROR,
-        CONFLICT_ERROR
+        CONFLICT_ERROR,
+        VALIDATION_ERROR
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using LiteDB;
-using System.Linq;
 using TiendaMusica.Application.Ports;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -33,6 +32,38 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             catch (Exception ex)
             {
                 result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-Lite-Repository {ex}");
+            }
+
+            return result;
+        }
+
+        public Results<Instrument> Create(Instrument instrument)
+        {
+            var result = new Results<Instrument>();
+
+            try
+            {
+                var collection = _context.InstrumentsCollection;
+
+                var document = _mapper.Map<InstrumentDocument>(instrument);
+
+                if (string.IsNullOrWhiteSpace(document.Id))
+                {
+                    document.Id = Guid.NewGuid().ToString();
+                }
+
+                document.CreationDateUtc = DateTime.UtcNow;
+
+                collection.Insert(document);
+
+                instrument.Id = document.Id;
+                instrument.CreationDateUtc = document.CreationDateUtc;
+
+                result.Result = instrument;
+            }
+            catch (Exception ex)
+            {
+                result.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Lite-Repository {ex}");
             }
 
             return result;
