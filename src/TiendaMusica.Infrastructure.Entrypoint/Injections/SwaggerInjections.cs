@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Filters;
+using System.Reflection;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 {
@@ -7,6 +9,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
     {
         public static IServiceCollection AddSwaggerInjections(this IServiceCollection services)
         {
+            var assembly = Assembly.Load("TiendaMusica.Infrastructure.Entrypoint");
+            services.AddSwaggerExamplesFromAssemblies(assembly);
+
             services.AddEndpointsApiExplorer();
 
             services.AddSwaggerGen(swaggerConf =>
@@ -26,10 +31,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
                     }
                 });
 
-                //var xmlFilename = "Crystal.Runner.xml";
-                //swaggerConf.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-                //swaggerConf.ExampleFilters();
-                //swaggerConf.EnableAnnotations();
+                swaggerConf.ExampleFilters();
+                swaggerConf.EnableAnnotations();
             });
 
             return services;

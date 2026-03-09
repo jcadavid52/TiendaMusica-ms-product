@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Filters;
 using System.Net;
 using TiendaMusica.Application.UseCases;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 {
     [ApiController]
@@ -28,6 +32,12 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             _restTools = restTools;
         }
         [HttpGet]
+        [SwaggerOperation(Summary = "Permite listar instrumentos", Description = "Permite obtener todos los instrumentos que existen en el catálogo.")]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GetInstrumentsResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [ProducesResponseType(typeof(Results<IList<InstrumentResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public IActionResult GetAll()
         {
             var response = new Results<IList<InstrumentResponse>>();
@@ -54,6 +64,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Permite crear un instrumento", Description = "Permite crear un instrumento que existen para el catálogo.")]
+        [SwaggerResponseExample(StatusCodes.Status201Created, typeof(CreateInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(ErrorBadRequestInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public IActionResult Create([FromBody]InstrumentRequest request)
         {
             var response = new Results<InstrumentResponse>();
