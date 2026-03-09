@@ -1,15 +1,18 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 {
     public static class EntrypointInjections
     {
-        public static IServiceCollection AddEntrypointInjections(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection AddEntrypointInjections(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -23,9 +26,14 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             services.AddHealthChecks();
             services.AddSwaggerInjections();
             services.AddSingleton<IRestTools, RestTools>();
-
+            FluentValidationInjections(services);
 
             return services;
+        }
+
+        private static void FluentValidationInjections(this IServiceCollection services)
+        {
+            services.AddValidatorsFromAssemblyContaining<InstrumentRequestValidator>();
         }
     }
 }

@@ -10,6 +10,7 @@ using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 {
     [ApiController]
@@ -71,11 +72,23 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public IActionResult Create([FromBody]InstrumentRequest request)
+        public IActionResult Create([FromBody] InstrumentRequest request)
         {
             var response = new Results<InstrumentResponse>();
             try
             {
+                var validator = new InstrumentRequestValidator();
+                var result = validator.Validate(request);
+
+                if (!result.IsValid)
+                {
+                    response.AddErrors(result.Errors.Select(error => new TiendaMusicaError(
+                       ErrorCode.VALIDATION_ERROR,
+                       $"Error en la propiedad {error.PropertyName}: {error.ErrorMessage}")
+                    ));
+                    return BadRequest(response);
+                }
+
                 var instrument = _mapper.Map<Instrument>(request);
 
                 var instrumentCreate = _instrumentUseCase.Create(instrument);
@@ -87,17 +100,17 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 
                 response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
             }
-            catch(ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 var error = ex.ToString();
-                response.AddError(ErrorCode.VALIDATION_ERROR,$"Error creando instrumento-Endpoint-Create {error}");
+                response.AddError(ErrorCode.VALIDATION_ERROR, $"Error creando instrumento-Endpoint-Create {error}");
             }
             catch (Exception ex)
             {
                 var error = ex.ToString();
                 response.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Endpoint-Create {error}");
             }
-            int statusCode = _restTools.GetHttpStatusCode(response.Errors,(int)HttpStatusCode.Created);
+            int statusCode = _restTools.GetHttpStatusCode(response.Errors, (int)HttpStatusCode.Created);
             return StatusCode(statusCode, response);
         }
     }

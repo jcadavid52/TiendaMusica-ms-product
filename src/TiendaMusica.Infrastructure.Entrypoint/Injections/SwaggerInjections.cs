@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
@@ -36,6 +37,21 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             });
 
             return services;
+        }
+        public static void UseSwaggerExtension(this IApplicationBuilder builder, string env)
+        {
+            if (string.Equals("local", env, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals("Development", env, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals("qa", env, StringComparison.InvariantCultureIgnoreCase))
+            {
+                builder.UseSwagger();
+                builder.UseSwaggerUI(x =>
+                {
+                    x.SwaggerEndpoint("/swagger/v1/swagger.json", "ms-instrument");
+                    x.DefaultModelsExpandDepth(-1);
+                    x.RoutePrefix = string.Empty;
+                });
+            }
         }
 
     }
