@@ -14,3 +14,4 @@ var env = builder.Environment.EnvironmentName;
 app.UseSwaggerExtension(env);
 app.MapControllers();
 app.Run();
+public partial class Program { }
