@@ -12,13 +12,13 @@ namespace TiendaMusica.Application.UseCases
         {
             _instrumentsRepositoryPorts = instrumentsRepositoryPorts;
         }
-        public Results<IList<Instrument>> GetAll()
+        public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
             var results = new Results<IList<Instrument>>();
 
             try
             {
-                var result = _instrumentsRepositoryPorts.GetAll();
+                var result = await _instrumentsRepositoryPorts.GetAllAsync();
 
                 if (!result.IsSuccess)
                 {
@@ -36,13 +36,13 @@ namespace TiendaMusica.Application.UseCases
 
             return results;
         }
-        public Results<Instrument> Create(Instrument instrument)
+        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
             var results = new Results<Instrument>();
 
             try
             {
-                var result = _instrumentsRepositoryPorts.Create(instrument);
+                var result = await _instrumentsRepositoryPorts.CreateAsync(instrument);
 
                 if (!result.IsSuccess)
                 {

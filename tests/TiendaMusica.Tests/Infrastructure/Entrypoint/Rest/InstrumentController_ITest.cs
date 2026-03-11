@@ -11,13 +11,13 @@
         }
 
         [Fact]
-        public void Test1()
+        public async Task Test1()
         {
             // Arrange
             var url = "/v1/instrument";
 
             // Act
-            var response = _client.GetAsync(url);
+            var response = await _client.GetAsync(url);
 
             // Assert
             Assert.NotNull(response);

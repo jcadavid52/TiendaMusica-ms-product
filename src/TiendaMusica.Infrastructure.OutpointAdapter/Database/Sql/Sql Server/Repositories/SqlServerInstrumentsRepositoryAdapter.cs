@@ -6,12 +6,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Re
 {
     internal class SqlServerInstrumentsRepositoryAdapter : IInstrumentsRepositoryPort
     {
-        public Results<Instrument> Create(Instrument instrument)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Results<IList<Instrument>> GetAll()
+        public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
             var result = new Results<IList<Instrument>>();
 
@@ -28,6 +23,10 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Re
             }
 
             return result;
+        }
+        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
+        {
+            throw new NotImplementedException();
         }
     }
 }

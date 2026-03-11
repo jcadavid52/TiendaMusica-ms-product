@@ -39,13 +39,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<IList<InstrumentResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
             var response = new Results<IList<InstrumentResponse>>();
 
             try
             {
-                var instruments = _instrumentUseCase.GetAll();
+                var instruments = await _instrumentUseCase.GetAllAsync();
 
                 if (instruments.HasErrors)
                 {
@@ -72,7 +72,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public IActionResult Create([FromBody] InstrumentRequest request)
+        public async Task<IActionResult> Create([FromBody] InstrumentRequest request)
         {
             var response = new Results<InstrumentResponse>();
             try
@@ -91,7 +91,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 
                 var instrument = _mapper.Map<Instrument>(request);
 
-                var instrumentCreate = _instrumentUseCase.Create(instrument);
+                var instrumentCreate = await _instrumentUseCase.CreateAsync(instrument);
 
                 if (instrumentCreate.HasErrors)
                 {

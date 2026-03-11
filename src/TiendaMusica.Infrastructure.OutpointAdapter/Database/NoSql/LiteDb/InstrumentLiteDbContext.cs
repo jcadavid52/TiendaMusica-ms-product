@@ -13,7 +13,23 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         {
             try
             {
-                Context = new LiteDatabase(configs.Value.Path);
+                var configuredPath = configs?.Value?.Path;
+                if (string.IsNullOrWhiteSpace(configuredPath))
+                {
+                    configuredPath = "LocalDatabase/litedb.db";
+                }
+
+                var dbPath = Path.IsPathRooted(configuredPath)
+                    ? configuredPath
+                    : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredPath));
+
+                var directory = Path.GetDirectoryName(dbPath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                Context = new LiteDatabase(dbPath);
             }
             catch (Exception ex)
             {

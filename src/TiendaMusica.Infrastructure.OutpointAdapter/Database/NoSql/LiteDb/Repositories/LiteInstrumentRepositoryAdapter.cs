@@ -17,17 +17,20 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             _mapper = mapper;
             _context = context;
         }
-        public Results<IList<Instrument>> GetAll()
+        public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
             var result = new Results<IList<Instrument>>();
 
             try
             {
-                var collection = _context.InstrumentsCollection;
-                var documents = collection.FindAll().ToList();
-                var instruments = documents.Select(x => _mapper.Map<Instrument>(x)).ToList();
+                result.Result = await Task.Run(() =>
+                {
+                    var collection = _context.InstrumentsCollection;
 
-                result.Result = instruments;
+                    var documents = collection.FindAll().ToList();
+
+                    return documents.Select(x => _mapper.Map<Instrument>(x)).ToList();
+                });
             }
             catch (Exception ex)
             {
@@ -37,33 +40,36 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             return result;
         }
 
-        public Results<Instrument> Create(Instrument instrument)
+        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
             var result = new Results<Instrument>();
 
             try
             {
-                var collection = _context.InstrumentsCollection;
-
-                var document = _mapper.Map<InstrumentDocument>(instrument);
-
-                if (string.IsNullOrWhiteSpace(document.Id))
+                await Task.Run(() =>
                 {
-                    document.Id = Guid.NewGuid().ToString();
-                }
+                    var collection = _context.InstrumentsCollection;
 
-                document.CreationDateUtc = DateTime.UtcNow;
+                    var document = _mapper.Map<InstrumentDocument>(instrument);
 
-                collection.Insert(document);
+                    if (string.IsNullOrWhiteSpace(document.Id))
+                    {
+                        document.Id = Guid.NewGuid().ToString();
+                    }
 
-                instrument.Id = document.Id;
-                instrument.CreationDateUtc = document.CreationDateUtc;
+                    document.CreationDateUtc = DateTime.UtcNow;
 
-                result.Result = instrument;
+                    collection.Insert(document);
+
+                    instrument.Id = document.Id;
+                    instrument.CreationDateUtc = document.CreationDateUtc;
+
+                    result.Result = instrument;
+                });
             }
             catch (Exception ex)
             {
-                result.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Lite-Repository {ex}");
+                result.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Lite-Repository: {ex.Message}");
             }
 
             return result;
