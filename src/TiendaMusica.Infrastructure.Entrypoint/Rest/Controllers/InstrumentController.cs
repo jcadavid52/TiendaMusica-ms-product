@@ -51,8 +51,10 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                 {
                     response.AddErrors(instruments.Errors);
                 }
-
-                response.Result = instruments.Result.Select(x => _mapper.Map<InstrumentResponse>(x)).ToList();
+                else
+                {
+                    response.Result = instruments.Result.Select(instrument => _mapper.Map<InstrumentResponse>(instrument)).ToList();
+                }
             }
             catch (Exception ex)
             {
@@ -97,8 +99,11 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                 {
                     response.AddErrors(instrumentCreate.Errors);
                 }
+                else
+                {
+                    response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
+                }
 
-                response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
             }
             catch (ArgumentException ex)
             {

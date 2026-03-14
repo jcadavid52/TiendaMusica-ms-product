@@ -13,6 +13,7 @@
 		<PackageReference Include="coverlet.collector" Version="6.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.24" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
 		<PackageReference Include="xunit" Version="2.5.3" />
@@ -27,17 +28,11 @@
 		<Folder Include="Application\" />
 		<Folder Include="Domain\" />
 		<Folder Include="Infrastructure\OutpointAdapter\" />
-		<Folder Include="LocalDatabase\" />
+		<Folder Include="TestResults\" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\TiendaMusica.Runner\TiendaMusica.Runner.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="LocalDatabase\litedb.db">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 </Project>

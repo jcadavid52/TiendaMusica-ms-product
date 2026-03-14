@@ -1,10 +1,12 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 {
+    [ExcludeFromCodeCoverage]
     internal class CreateInstrumentResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
     {
         public IEnumerable<SwaggerExample<Results<InstrumentResponse>>> GetExamples()

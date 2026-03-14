@@ -7,7 +7,7 @@ namespace TiendaMusica.Application.Injections
     {
         public static IServiceCollection AddApplicationInjections(this IServiceCollection services)
         {
-            services.AddSingleton<IInstrumentUseCase, InstrumentUseCase>();
+            services.AddScoped<IInstrumentUseCase, InstrumentUseCase>();
             return services;
         }
     }

@@ -24,9 +24,10 @@ namespace TiendaMusica.Application.UseCases
                 {
                     results.AddErrors(results.Errors);
                 }
-
-                results.Result = result.Result;
-
+                else
+                {
+                    results.Result = result.Result;
+                }
             }
             catch (Exception ex)
             {
@@ -48,8 +49,10 @@ namespace TiendaMusica.Application.UseCases
                 {
                     results.AddErrors(result.Errors);
                 }
-
-                results.Result = result.Result;
+                else
+                {
+                    results.Result = result.Result;
+                }
             }
             catch (Exception ex)
             {

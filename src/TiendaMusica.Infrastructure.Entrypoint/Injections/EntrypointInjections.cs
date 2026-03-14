@@ -25,7 +25,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             services.AddAutoMapper(cfg => { }, assembly);
             services.AddHealthChecks();
             services.AddSwaggerInjections();
-            services.AddSingleton<IRestTools, RestTools>();
+            services.AddScoped<IRestTools, RestTools>();
             FluentValidationInjections(services);
 
             return services;

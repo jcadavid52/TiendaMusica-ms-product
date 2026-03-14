@@ -32,8 +32,8 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                             opts.Path = liteSection["Path"];
                         }
                     });
-                    services.AddSingleton<InstrumentLiteDbContext>();
-                    services.AddSingleton<IInstrumentsRepositoryPort, LiteInstrumentRepositoryAdapter>();
+                    services.AddScoped<InstrumentLiteDbContext>();
+                    services.AddScoped<IInstrumentsRepositoryPort, LiteInstrumentRepositoryAdapter>();
                 }
             }
             else
@@ -49,7 +49,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 
         private static void ConfigureSqlDatabase(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton<IInstrumentsRepositoryPort, SqlServerInstrumentsRepositoryAdapter>();
+            services.AddScoped<IInstrumentsRepositoryPort, SqlServerInstrumentsRepositoryAdapter>();
         }
     }
 }

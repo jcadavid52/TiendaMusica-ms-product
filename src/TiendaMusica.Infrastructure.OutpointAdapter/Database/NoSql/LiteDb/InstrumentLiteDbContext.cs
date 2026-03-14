@@ -5,7 +5,7 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Document
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
 {
-    public class InstrumentLiteDbContext
+    public class InstrumentLiteDbContext : IDisposable
     {
         public LiteDatabase Context { get; }
 
@@ -14,22 +14,27 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             try
             {
                 var configuredPath = configs?.Value?.Path;
-                if (string.IsNullOrWhiteSpace(configuredPath))
+                if (configuredPath == ":memory:")
                 {
-                    configuredPath = "LocalDatabase/litedb.db";
+                    Context = new LiteDatabase(new MemoryStream());
                 }
-
-                var dbPath = Path.IsPathRooted(configuredPath)
-                    ? configuredPath
-                    : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredPath));
-
-                var directory = Path.GetDirectoryName(dbPath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                else
                 {
-                    Directory.CreateDirectory(directory);
-                }
+                    // Lógica original para archivos físicos
+                    if (string.IsNullOrWhiteSpace(configuredPath))
+                        configuredPath = "LocalDatabase/litedb.db";
 
-                Context = new LiteDatabase(dbPath);
+                    var dbPath = Path.IsPathRooted(configuredPath)
+                        ? configuredPath
+                        : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredPath));
+
+                    var directory = Path.GetDirectoryName(dbPath);
+                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                        Directory.CreateDirectory(directory);
+
+                    // Importante: Usamos Connection=Shared para mitigar bloqueos si se usa archivo
+                    Context = new LiteDatabase($"Filename={dbPath};Connection=shared");
+                }
             }
             catch (Exception ex)
             {
@@ -38,5 +43,10 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         }
 
         public ILiteCollection<InstrumentDocument> InstrumentsCollection => Context.GetCollection<InstrumentDocument>("Instruments");
+
+        public void Dispose()
+        {
+            Context?.Dispose();
+        }
     }
 }
