@@ -2,7 +2,9 @@
 using Moq;
 using Newtonsoft.Json;
 using System.Collections;
+using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
@@ -186,7 +188,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     if (descriptor != null) services.Remove(descriptor);
 
                     var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<Instrument>()))
+                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
                                       .ReturnsAsync(new Results<Instrument>
                                       {
                                           Errors = new List<TiendaMusicaError>
@@ -233,7 +235,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     if (descriptor != null) services.Remove(descriptor);
 
                     var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<Instrument>()))
+                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
                                       .Throws(new Exception("Exception forzada en el UseCase"));
 
                     services.AddScoped(_ => mockInstrumentUsecase.Object);
@@ -273,7 +275,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     if (descriptor != null) services.Remove(descriptor);
 
                     var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<Instrument>()))
+                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
                                       .Throws(new ArgumentException("ArgumentException forzada en el UseCase"));
 
                     services.AddScoped(_ => mockInstrumentUsecase.Object);

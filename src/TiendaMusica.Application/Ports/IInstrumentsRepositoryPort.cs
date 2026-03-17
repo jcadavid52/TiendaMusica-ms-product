@@ -1,4 +1,6 @@
-﻿using TiendaMusica.Domain.Models;
+﻿using TiendaMusica.Application.Dtos;
+using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 
 namespace TiendaMusica.Application.Ports
@@ -6,6 +8,8 @@ namespace TiendaMusica.Application.Ports
     public interface IInstrumentsRepositoryPort
     {
         Task<Results<IList<Instrument>>> GetAllAsync();
-        Task<Results<Instrument>> CreateAsync(Instrument instrument);
+        Task<Results<Instrument>> GetByNameAsync(string name);
+        Task<Results<int>> GetStockByType(InstrumentType type);
+        Task<Results<Instrument>> CreateAsync(Instrument instrumentCommand);
     }
 }

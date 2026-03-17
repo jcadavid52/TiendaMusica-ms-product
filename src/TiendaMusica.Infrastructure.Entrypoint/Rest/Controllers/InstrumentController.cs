@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Net;
+using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -91,9 +92,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                     return BadRequest(response);
                 }
 
-                var instrument = _mapper.Map<Instrument>(request);
+                var instrumentCommand = _mapper.Map<CreateInstrumentCommand>(request);
 
-                var instrumentCreate = await _instrumentUseCase.CreateAsync(instrument);
+                var instrumentCreate = await _instrumentUseCase.CreateAsync(instrumentCommand);
 
                 if (instrumentCreate.HasErrors)
                 {
@@ -104,11 +105,6 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                     response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
                 }
 
-            }
-            catch (ArgumentException ex)
-            {
-                var error = ex.ToString();
-                response.AddError(ErrorCode.VALIDATION_ERROR, $"Error creando instrumento-Endpoint-Create {error}");
             }
             catch (Exception ex)
             {

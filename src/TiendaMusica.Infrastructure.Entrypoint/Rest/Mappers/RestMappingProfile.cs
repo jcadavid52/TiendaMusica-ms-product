@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 
@@ -9,7 +10,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers
         public RestMappingProfile()
         {
             CreateMap<Instrument, InstrumentResponse>();
-            CreateMap<InstrumentRequest,Instrument>();
+            CreateMap<InstrumentRequest, CreateInstrumentCommand>();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using LiteDB;
-using TiendaMusica.Domain.Models;
+using TiendaMusica.Domain.Enums;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents
 {

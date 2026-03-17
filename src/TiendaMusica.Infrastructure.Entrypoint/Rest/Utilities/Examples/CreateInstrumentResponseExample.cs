@@ -1,6 +1,6 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
-using TiendaMusica.Domain.Models;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 

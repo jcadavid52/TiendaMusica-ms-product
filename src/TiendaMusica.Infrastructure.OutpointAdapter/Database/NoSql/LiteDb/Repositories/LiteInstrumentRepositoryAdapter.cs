@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LiteDB;
 using TiendaMusica.Application.Ports;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
@@ -40,6 +41,24 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             return result;
         }
 
+        public async Task<Results<Instrument>> GetByNameAsync(string name)
+        {
+            var result = new Results<Instrument>();
+
+            try
+            {
+                var collection = _context.InstrumentsCollection;
+                var document = collection.FindOne(instrument => instrument.Name == name);
+                result.Result = _mapper.Map<Instrument>(document);
+            }
+            catch (Exception ex)
+            {
+                result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumento por su nombre Lite-Repository: {ex.Message}");
+            }
+
+            return result;
+        }
+
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
             var result = new Results<Instrument>();
@@ -70,6 +89,25 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             catch (Exception ex)
             {
                 result.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Lite-Repository: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<Results<int>> GetStockByType(InstrumentType type)
+        {
+            var result = new Results<int>();
+
+            try
+            {
+                var collection = _context.InstrumentsCollection;
+                var documents = collection.Find(instrument => instrument.Type == type).ToList();
+                var currentStock = documents.Sum(instrument => instrument.Stock);
+                result.Result = currentStock;
+            }
+            catch (Exception ex)
+            {
+                result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo stock por tipo-Lite-Repository: {ex.Message}");
             }
 
             return result;

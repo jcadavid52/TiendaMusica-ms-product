@@ -1,7 +1,8 @@
-﻿using TiendaMusica.Domain.Models.Result;
+﻿using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Models.Result;
 namespace TiendaMusica.Domain.Models
 {
-    public class Instrument:Entity<string>
+    public class Instrument : Entity<string>
     {
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
@@ -9,7 +10,9 @@ namespace TiendaMusica.Domain.Models
         public decimal Price { get; private set; }
         public int Stock { get; private set; }
 
-        public Instrument(
+        private const decimal ShippingCost = 100;
+
+        private Instrument(
             string name,
             string description,
             InstrumentType type,
@@ -24,7 +27,7 @@ namespace TiendaMusica.Domain.Models
             ArgumentNullException.ThrowIfNull(type, nameof(price));
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
             ArgumentException.ThrowIfNullOrWhiteSpace(description);
-            
+
             Name = name;
             Description = description;
             Type = type;
@@ -32,16 +35,38 @@ namespace TiendaMusica.Domain.Models
             Stock = stock;
         }
 
-        public Results<Instrument> ValidateExistenceByName(string name)
+        public static Results<Instrument> Create(
+            string name,
+            string description,
+            InstrumentType type,
+            decimal price,
+            int stock
+            )
         {
-            var results = new Results<Instrument>();
+            var resultInstrument = new Results<Instrument>();
 
-            if(name == Name)
-            {
-                results.AddError(ErrorCode.CONFLICT_ERROR, $"Ya hay un instrumento con el nombre '{name}'");
-            }
-            
-            return results;
+            if (ValidateMinimalPrice(price))
+                return resultInstrument.AddError(ErrorCode.VALIDATION_ERROR, "El precio no puede ser menor al costo de envío");
+
+            if (!EnsureBundleConsistency(name, description))
+                return resultInstrument.AddError(ErrorCode.VALIDATION_ERROR, "Bundles must have a description of at least 10 characters.");
+
+            resultInstrument.Result = new Instrument(name, description, type, price, stock);
+            return resultInstrument;
+        }
+
+        private static bool EnsureBundleConsistency(string name, string description)
+        {
+            bool isBundle = name.Contains("Pack") || name.Contains("Kit");
+
+            if (isBundle && description.Length < 10) return false;
+
+            return true;
+        }
+
+        private static bool ValidateMinimalPrice(decimal price)
+        {
+            return price < ShippingCost;
         }
     }
 }

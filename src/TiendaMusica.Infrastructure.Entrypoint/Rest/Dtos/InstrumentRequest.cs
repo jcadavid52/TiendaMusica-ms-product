@@ -1,4 +1,4 @@
-﻿using TiendaMusica.Domain.Models;
+﻿using TiendaMusica.Domain.Enums;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos
 {

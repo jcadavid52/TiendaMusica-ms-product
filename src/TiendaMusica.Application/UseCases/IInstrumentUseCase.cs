@@ -1,4 +1,5 @@
-﻿using TiendaMusica.Domain.Models;
+﻿using TiendaMusica.Application.Dtos;
+using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 
 namespace TiendaMusica.Application.UseCases
@@ -6,6 +7,6 @@ namespace TiendaMusica.Application.UseCases
     public interface IInstrumentUseCase
     {
         Task<Results<IList<Instrument>>> GetAllAsync();
-        Task<Results<Instrument>> CreateAsync(Instrument instrument);
+        Task<Results<Instrument>> CreateAsync(CreateInstrumentCommand instrument);
     }
 }

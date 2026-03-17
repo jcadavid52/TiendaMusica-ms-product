@@ -1,4 +1,5 @@
 ﻿using TiendaMusica.Application.Ports;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 
@@ -25,6 +26,16 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Re
             return result;
         }
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Results<Instrument>> GetByNameAsync(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Results<int>> GetStockByType(InstrumentType type)
         {
             throw new NotImplementedException();
         }
