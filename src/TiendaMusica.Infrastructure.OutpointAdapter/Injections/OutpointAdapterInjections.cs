@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using TiendaMusica.Application.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Repositories;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
@@ -13,8 +15,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
     {
         public static IServiceCollection AddOutpointAdapterInjections(this IServiceCollection services, IConfiguration configuration, string currentEnvironment)
         {
-
-            
             if (currentEnvironment == "Development")
             {
                 string? ConnectionActive = configuration["Database:Active"];
@@ -49,6 +49,13 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 
         private static void ConfigureSqlDatabase(IServiceCollection services, IConfiguration configuration)
         {
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            
+            services.AddDbContext<InstrumentSqlServerDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+            });
+
             services.AddScoped<IInstrumentsRepositoryPort, SqlServerInstrumentsRepositoryAdapter>();
         }
     }

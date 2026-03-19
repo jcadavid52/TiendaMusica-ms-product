@@ -2,7 +2,7 @@
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 
-namespace TiendaMusica.Application.UseCases
+namespace TiendaMusica.Application.UseCases.Instruments
 {
     public interface IInstrumentUseCase
     {

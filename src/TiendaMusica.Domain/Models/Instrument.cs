@@ -21,7 +21,6 @@ namespace TiendaMusica.Domain.Models
             )
         {
             ArgumentOutOfRangeException.ThrowIfNegative(stock);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
             ArgumentNullException.ThrowIfNull(stock, nameof(stock));
             ArgumentNullException.ThrowIfNull(type, nameof(type));
             ArgumentNullException.ThrowIfNull(type, nameof(price));

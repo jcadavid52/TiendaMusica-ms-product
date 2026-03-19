@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TiendaMusica.Application.UseCases;
+using TiendaMusica.Application.UseCases.Instruments;
 
 namespace TiendaMusica.Application.Injections
 {

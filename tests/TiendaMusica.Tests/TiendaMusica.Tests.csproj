@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.24" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
@@ -25,13 +26,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Application\" />
-		<Folder Include="Domain\" />
 		<Folder Include="Infrastructure\OutpointAdapter\" />
 		<Folder Include="TestResults\" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\TiendaMusica.Infrastructure.OutpointAdapter\TiendaMusica.Infrastructure.OutpointAdapter.csproj" />
 		<ProjectReference Include="..\..\src\TiendaMusica.Runner\TiendaMusica.Runner.csproj" />
 	</ItemGroup>
 

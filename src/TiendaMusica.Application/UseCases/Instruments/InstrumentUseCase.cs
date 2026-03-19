@@ -4,7 +4,7 @@ using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Services;
 
-namespace TiendaMusica.Application.UseCases
+namespace TiendaMusica.Application.UseCases.Instruments
 {
     public class InstrumentUseCase : IInstrumentUseCase
     {
@@ -26,7 +26,7 @@ namespace TiendaMusica.Application.UseCases
             {
                 var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
 
-                if (resultInstruments.HasErrors) return results.AddErrors(results.Errors);
+                if (resultInstruments.HasErrors) return results.AddErrors(resultInstruments.Errors);
 
                 results.Result = resultInstruments.Result;
 

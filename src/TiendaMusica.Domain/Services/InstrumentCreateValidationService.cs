@@ -8,15 +8,22 @@ namespace TiendaMusica.Domain.Services
         public Results<bool> ValidateLimitStockByType(int stock, int currentStock, InstrumentType type)
         {
             var results = new Results<bool>();
+            try
+            {
+                int totalStock = stock + currentStock;
 
-            int totalStock = stock + currentStock;
+                int limit = GetLimitStockByType(type);
 
-            int limit = GetLimitStockByType(type);
+                if (limit > 0 && totalStock >= limit)
+                    return results.AddError(ErrorCode.VALIDATION_ERROR, $"El límite de stock es de {limit} para instrumentos de tipo {type}");
 
-            if (limit > 0 && totalStock >= limit)
-                return results.AddError(ErrorCode.VALIDATION_ERROR, $"El límite de stock es de {limit} para instrumentos de tipo {type}");
+                results.Result = true;
+            }
+            catch (Exception ex)
+            {
+                results.AddError(ErrorCode.SERVER_ERROR, $"Ocurrió un error al validar el límite de stock: {ex.Message}");
+            }
 
-            results.Result = true;
             return results;
         }
 

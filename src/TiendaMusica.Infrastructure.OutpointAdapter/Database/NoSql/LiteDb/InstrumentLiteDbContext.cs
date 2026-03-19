@@ -1,10 +1,12 @@
 ﻿using LiteDB;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
 {
+    [ExcludeFromCodeCoverage]
     public class InstrumentLiteDbContext : IDisposable
     {
         public LiteDatabase Context { get; }
