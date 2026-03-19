@@ -1,7 +1,7 @@
 ﻿using TiendaMusica.Application.Dtos;
-using TiendaMusica.Application.Ports;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
+using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
 namespace TiendaMusica.Application.UseCases.Instruments
@@ -20,22 +20,12 @@ namespace TiendaMusica.Application.UseCases.Instruments
         }
         public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
-            var results = new Results<IList<Instrument>>();
+            var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
 
-            try
-            {
-                var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
+            if (resultInstruments.HasErrors) 
+                return new Results<IList<Instrument>>().AddErrors(resultInstruments.Errors);
 
-                if (resultInstruments.HasErrors) return results.AddErrors(resultInstruments.Errors);
-
-                results.Result = resultInstruments.Result;
-
-                return results;
-            }
-            catch (Exception ex)
-            {
-                return results.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-UseCase: {ex.Message}");
-            }
+            return new Results<IList<Instrument>> { Result = resultInstruments.Result };
         }
         public async Task<Results<Instrument>> CreateAsync(CreateInstrumentCommand instrumentCommand)
         {
@@ -71,10 +61,6 @@ namespace TiendaMusica.Application.UseCases.Instruments
             catch (ArgumentException ex)
             {
                 return results.AddError(ErrorCode.VALIDATION_ERROR, $"Error Domain: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return results.AddError(ErrorCode.SERVER_ERROR, $"Error UseCase: {ex.Message}");
             }
         }
     }

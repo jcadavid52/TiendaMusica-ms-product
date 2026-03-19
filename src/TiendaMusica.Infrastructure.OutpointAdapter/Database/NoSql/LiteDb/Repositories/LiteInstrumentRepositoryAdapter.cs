@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using LiteDB;
-using TiendaMusica.Application.Ports;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
+using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories
@@ -18,99 +18,59 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             _mapper = mapper;
             _context = context;
         }
+
         public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
-            var result = new Results<IList<Instrument>>();
-
-            try
+            var instruments = await Task.Run(() =>
             {
-                result.Result = await Task.Run(() =>
-                {
-                    var collection = _context.InstrumentsCollection;
+                var collection = _context.InstrumentsCollection;
+                var documents = collection.FindAll().ToList();
+                return documents.Select(x => _mapper.Map<Instrument>(x)).ToList();
+            });
 
-                    var documents = collection.FindAll().ToList();
-
-                    return documents.Select(x => _mapper.Map<Instrument>(x)).ToList();
-                });
-            }
-            catch (Exception ex)
-            {
-                result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-Lite-Repository {ex}");
-            }
-
-            return result;
+            return new Results<IList<Instrument>> { Result = instruments };
         }
 
         public async Task<Results<Instrument>> GetByNameAsync(string name)
         {
-            var result = new Results<Instrument>();
+            var collection = _context.InstrumentsCollection;
+            var document = collection.FindOne(instrument => instrument.Name == name);
+            var instrument = _mapper.Map<Instrument>(document);
 
-            try
-            {
-                var collection = _context.InstrumentsCollection;
-                var document = collection.FindOne(instrument => instrument.Name == name);
-                result.Result = _mapper.Map<Instrument>(document);
-            }
-            catch (Exception ex)
-            {
-                result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumento por su nombre Lite-Repository: {ex.Message}");
-            }
-
-            return result;
+            return new Results<Instrument> { Result = instrument };
         }
 
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
-            var result = new Results<Instrument>();
-
-            try
+            var document = await Task.Run(() =>
             {
-                await Task.Run(() =>
+                var collection = _context.InstrumentsCollection;
+                var doc = _mapper.Map<InstrumentDocument>(instrument);
+
+                if (string.IsNullOrWhiteSpace(doc.Id))
                 {
-                    var collection = _context.InstrumentsCollection;
+                    doc.Id = Guid.NewGuid().ToString();
+                }
 
-                    var document = _mapper.Map<InstrumentDocument>(instrument);
+                doc.CreationDateUtc = DateTime.UtcNow;
+                collection.Insert(doc);
 
-                    if (string.IsNullOrWhiteSpace(document.Id))
-                    {
-                        document.Id = Guid.NewGuid().ToString();
-                    }
+                instrument.Id = doc.Id;
+                instrument.CreationDateUtc = doc.CreationDateUtc;
 
-                    document.CreationDateUtc = DateTime.UtcNow;
+                return doc;
+            });
 
-                    collection.Insert(document);
-
-                    instrument.Id = document.Id;
-                    instrument.CreationDateUtc = document.CreationDateUtc;
-
-                    result.Result = instrument;
-                });
-            }
-            catch (Exception ex)
-            {
-                result.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Lite-Repository: {ex.Message}");
-            }
-
-            return result;
+            return new Results<Instrument> { Result = instrument };
         }
 
         public async Task<Results<int>> GetStockByType(InstrumentType type)
         {
-            var result = new Results<int>();
+            var collection = _context.InstrumentsCollection;
+            var documents = collection.Find(instrument => instrument.Type == type).ToList();
+            var currentStock = documents.Sum(instrument => instrument.Stock);
 
-            try
-            {
-                var collection = _context.InstrumentsCollection;
-                var documents = collection.Find(instrument => instrument.Type == type).ToList();
-                var currentStock = documents.Sum(instrument => instrument.Stock);
-                result.Result = currentStock;
-            }
-            catch (Exception ex)
-            {
-                result.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo stock por tipo-Lite-Repository: {ex.Message}");
-            }
-
-            return result;
+            return new Results<int> { Result = currentStock };
         }
     }
 }

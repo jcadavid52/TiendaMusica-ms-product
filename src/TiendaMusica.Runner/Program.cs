@@ -1,6 +1,7 @@
 using TiendaMusica.Application.Injections;
 using TiendaMusica.Domain.Injections;
 using TiendaMusica.Infrastructure.Entrypoint.Injections;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Middleware;
 using TiendaMusica.Infrastructure.OutpointAdapter.Injections;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddEntrypointInjections(builder.Configuration);
 
 var app = builder.Build();
 var env = builder.Environment.EnvironmentName;
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSwaggerExtension(env);
 app.MapControllers();
 app.Run();

@@ -44,43 +44,6 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         }
 
         [Fact]
-        public async Task GetAllAsync_WhenUseCaseThrowsException_ShouldReturnsFailureResultStatus500()
-        {
-            // Arrange
-            var url = "/v1/instrument";
-            int codeExpected = 500;
-
-            // Act
-
-            var errorClient = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IInstrumentUseCase));
-                    if (descriptor != null) services.Remove(descriptor);
-
-                    var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.GetAllAsync())
-                                      .Throws(new Exception("Exception forzada en el UseCase"));
-
-                    services.AddScoped(_ => mockInstrumentUsecase.Object);
-                });
-            }).CreateClient();
-
-            var response = await errorClient.GetAsync(url);
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseObject = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
-
-            // Assert
-            Assert.True(responseObject!.Errors.Any());
-            Assert.NotNull(response);
-            Assert.NotNull(responseObject);
-            Assert.Null(responseObject.Result);
-            Assert.False(responseObject.IsSuccess);
-            Assert.Equal(codeExpected, (int)response.StatusCode);
-        }
-
-        [Fact]
         public async Task GetAllAsync_WhenUseCaseReturnsErrors_ShouldReturnsFailureResultStatus500()
         {
             // Arrange
@@ -208,49 +171,6 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                                               new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
                                           },
                                       });
-
-                    services.AddScoped(_ => mockInstrumentUsecase.Object);
-                });
-            }).CreateClient();
-
-            var response = await errorClient.PostAsync(url, content);
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
-
-            // Assert
-            Assert.NotNull(response);
-            Assert.NotNull(responseObject);
-            Assert.Null(responseObject.Result);
-            Assert.False(responseObject.IsSuccess);
-            Assert.True(responseObject.Errors.Any());
-            Assert.Equal(codeExpected, (int)response.StatusCode);
-        }
-
-        [Fact]
-        public async Task CreateAsync_WhenUseCaseThrowsException_ShouldReturnsFailureResultStatus500()
-        {
-            // Arrange
-            var url = "/v1/instrument";
-            int codeExpected = 500;
-            var newInstrument = new InstrumentRequest("Guitarra Eléctrica",
-                "Descripción test",
-                InstrumentType.Stringed,
-                1500.00m,
-                1
-                );
-            var content = new StringContent(JsonConvert.SerializeObject(newInstrument), System.Text.Encoding.UTF8, "application/json");
-
-            // Act
-            var errorClient = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IInstrumentUseCase));
-                    if (descriptor != null) services.Remove(descriptor);
-
-                    var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
-                                      .Throws(new Exception("Exception forzada en el UseCase"));
 
                     services.AddScoped(_ => mockInstrumentUsecase.Object);
                 });

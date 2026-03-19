@@ -44,23 +44,15 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         {
             var response = new Results<IList<InstrumentResponse>>();
 
-            try
-            {
-                var instruments = await _instrumentUseCase.GetAllAsync();
+            var instruments = await _instrumentUseCase.GetAllAsync();
 
-                if (instruments.HasErrors)
-                {
-                    response.AddErrors(instruments.Errors);
-                }
-                else
-                {
-                    response.Result = instruments.Result.Select(instrument => _mapper.Map<InstrumentResponse>(instrument)).ToList();
-                }
-            }
-            catch (Exception ex)
+            if (instruments.HasErrors)
             {
-                var error = ex.ToString();
-                response.AddError(ErrorCode.SERVER_ERROR, $"Error obteniendo instrumentos-Endpoint-GetAll {error}");
+                response.AddErrors(instruments.Errors);
+            }
+            else
+            {
+                response.Result = instruments.Result.Select(instrument => _mapper.Map<InstrumentResponse>(instrument)).ToList();
             }
 
             int statusCode = _restTools.GetHttpStatusCode(response.Errors);
@@ -78,39 +70,32 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         public async Task<IActionResult> Create([FromBody] InstrumentRequest request)
         {
             var response = new Results<InstrumentResponse>();
-            try
+
+            var validator = new InstrumentRequestValidator();
+            var result = validator.Validate(request);
+
+            if (!result.IsValid)
             {
-                var validator = new InstrumentRequestValidator();
-                var result = validator.Validate(request);
-
-                if (!result.IsValid)
-                {
-                    response.AddErrors(result.Errors.Select(error => new TiendaMusicaError(
-                       ErrorCode.VALIDATION_ERROR,
-                       $"Error en la propiedad {error.PropertyName}: {error.ErrorMessage}")
-                    ));
-                    return BadRequest(response);
-                }
-
-                var instrumentCommand = _mapper.Map<CreateInstrumentCommand>(request);
-
-                var instrumentCreate = await _instrumentUseCase.CreateAsync(instrumentCommand);
-
-                if (instrumentCreate.HasErrors)
-                {
-                    response.AddErrors(instrumentCreate.Errors);
-                }
-                else
-                {
-                    response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
-                }
-
+                response.AddErrors(result.Errors.Select(error => new TiendaMusicaError(
+                   ErrorCode.VALIDATION_ERROR,
+                   $"Error en la propiedad {error.PropertyName}: {error.ErrorMessage}")
+                ));
+                return BadRequest(response);
             }
-            catch (Exception ex)
+
+            var instrumentCommand = _mapper.Map<CreateInstrumentCommand>(request);
+
+            var instrumentCreate = await _instrumentUseCase.CreateAsync(instrumentCommand);
+
+            if (instrumentCreate.HasErrors)
             {
-                var error = ex.ToString();
-                response.AddError(ErrorCode.SERVER_ERROR, $"Error creando instrumento-Endpoint-Create {error}");
+                response.AddErrors(instrumentCreate.Errors);
             }
+            else
+            {
+                response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
+            }
+
             int statusCode = _restTools.GetHttpStatusCode(response.Errors, (int)HttpStatusCode.Created);
             return StatusCode(statusCode, response);
         }

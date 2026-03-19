@@ -1,10 +1,10 @@
 ﻿using Moq;
 using TiendaMusica.Application.Dtos;
-using TiendaMusica.Application.Ports;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
+using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
 namespace TiendaMusica.Tests.Application.UseCases.Instruments
@@ -58,21 +58,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
                     }
                 });
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object);
-            // Act
-            var result = await useCase.GetAllAsync();
-            // Assert
-            Assert.Null(result.Result);
-            Assert.True(result.HasErrors);
-            Assert.False(result.IsSuccess);
-        }
-
-        [Fact]
-        public async Task GetAll_WhenRepositoryThrowsException_ReturnsFailureResult()
-        {
-            // Arrange
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync())
-                .Throws(new Exception("Exception forzada en el UseCase"));
             var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object);
             // Act
             var result = await useCase.GetAllAsync();
@@ -264,54 +249,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .Throws(new ArgumentException("Exception forzada en el UseCase"));
-
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object);
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenCreateAsyncThrowException()
-        {
-            // Arrange
-            var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
-
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
-                .Throws(new Exception("Exception forzada en el UseCase"));
-
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object);
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenValidateLimitStockByTypeThrowException()
-        {
-            // Arrange
-            var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
-
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
-                .Throws(new Exception("Exception forzada en el ValidateLimitStockByType"));
 
             var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object);
             // Act

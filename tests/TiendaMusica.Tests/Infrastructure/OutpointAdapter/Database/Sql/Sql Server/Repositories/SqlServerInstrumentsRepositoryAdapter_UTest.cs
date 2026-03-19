@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using TiendaMusica.Application.Ports;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
+using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Repositories;
 
