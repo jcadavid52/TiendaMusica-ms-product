@@ -8,12 +8,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
 {
     public static class MainExecute
     {
-        public static async Task ExecuteAsync(string[] args, IServiceCollection services)
+        public static async Task ExecuteAsync(string[] args, IServiceProvider serviceProvider)
         {
-            var serviceProvider = services.BuildServiceProvider();
+            using var scope = serviceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
 
             var command = args[0].ToLower();
-            var instrumentsCommand = serviceProvider.GetRequiredService<InstrumentsCommand>();
+            var instrumentsCommand = provider.GetRequiredService<InstrumentsCommand>();
 
             switch (command)
             {

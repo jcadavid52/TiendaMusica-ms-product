@@ -1,13 +1,43 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
-using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 {
-    public static class SwaggerInjections
+    public static class RestInjections
     {
+        public static IServiceCollection AddRestInjections(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
+
+            var assembly = Assembly.GetExecutingAssembly();
+            services.AddAutoMapper(cfg => { }, assembly);
+            services.AddHealthChecks();
+            AddSwaggerInjections(services);
+            services.AddScoped<IRestTools, RestTools>();
+            FluentValidationInjections(services);
+
+            return services;
+        }
+
+        private static void FluentValidationInjections(this IServiceCollection services)
+        {
+            services.AddValidatorsFromAssemblyContaining<InstrumentRequestValidator>();
+        }
+
         public static IServiceCollection AddSwaggerInjections(this IServiceCollection services)
         {
             var assembly = Assembly.Load("TiendaMusica.Infrastructure.Entrypoint");
@@ -53,6 +83,5 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
                 });
             }
         }
-
     }
 }
