@@ -6,8 +6,8 @@ using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
-using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server;
-using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Repositories;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 {
@@ -20,7 +20,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 string? ConnectionActive = configuration["Database:Active"];
                 if (string.Equals("SQL", ConnectionActive, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    ConfigureSqlDatabase(services, configuration);
+                    ConfigureSqlServerDatabase(services, configuration);
                 }
                 else
                 {
@@ -38,7 +38,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
             }
             else
             {
-                ConfigureSqlDatabase(services, configuration);
+                ConfigureSqlServerDatabase(services, configuration);
             }
 
             var assembly = Assembly.GetExecutingAssembly();
@@ -47,9 +47,10 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
             return services;
         }
 
-        private static void ConfigureSqlDatabase(IServiceCollection services, IConfiguration configuration)
+        private static void ConfigureSqlServerDatabase(IServiceCollection services, IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetSection("Database:SQL:ConnectionStrings:SqlConnection").Value
+                ?? throw new ArgumentNullException("Error al obtener cadena de conexión");
             
             services.AddDbContext<InstrumentSqlServerDbContext>(options =>
             {

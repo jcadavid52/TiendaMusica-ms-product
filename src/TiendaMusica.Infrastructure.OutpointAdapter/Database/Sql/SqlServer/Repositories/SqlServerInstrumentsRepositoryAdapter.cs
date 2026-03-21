@@ -3,9 +3,8 @@ using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
-using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server;
 
-namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server.Repositories
+namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories
 {
     public class SqlServerInstrumentsRepositoryAdapter : IInstrumentsRepositoryPort
     {

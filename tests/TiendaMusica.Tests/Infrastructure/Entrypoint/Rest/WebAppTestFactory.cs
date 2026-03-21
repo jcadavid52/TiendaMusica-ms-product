@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
-using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.Sql_Server;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 
 namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 {
