@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using Polly;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -18,9 +20,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             var options = new DbContextOptionsBuilder<InstrumentSqlServerDbContext>()
                 .UseInMemoryDatabase(databaseName: $"TestDatabase_{Guid.NewGuid()}")
                 .Options;
-
+            IAsyncPolicy async = Policy.NoOpAsync();
             _context = new InstrumentSqlServerDbContext(options);
-            _adapter = new SqlServerInstrumentsRepositoryAdapter(_context);
+            _adapter = new SqlServerInstrumentsRepositoryAdapter(_context, async);
         }
 
         [Fact]
