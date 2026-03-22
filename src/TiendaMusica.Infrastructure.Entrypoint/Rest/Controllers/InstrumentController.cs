@@ -7,6 +7,7 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Net;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
@@ -44,12 +45,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<IList<InstrumentResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync(
+            [FromQuery, SwaggerParameter("Dirección de ordenamiento, ascendente o descendente: Asc, Desc")] SortDirection sortDirection = SortDirection.Desc)
         {
             _logger.LogInformation("(endpoint api rest) - Iniciando  proceso para obtener todos los instrumentos");
             var response = new Results<IList<InstrumentResponse>>();
 
-            var instruments = await _instrumentUseCase.GetAllAsync();
+            var instruments = await _instrumentUseCase.GetAllAsync(sortDirection);
 
             if (instruments.HasErrors)
             {

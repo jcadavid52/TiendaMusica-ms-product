@@ -59,7 +59,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     if (descriptor != null) services.Remove(descriptor);
 
                     var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
-                    mockInstrumentUsecase.Setup(m => m.GetAllAsync())
+                    mockInstrumentUsecase.Setup(m => m.GetAllAsync(It.IsAny<SortDirection>()))
                                       .ReturnsAsync(new Results<IList<Instrument>>
                                       {
                                           Errors = new List<TiendaMusicaError>

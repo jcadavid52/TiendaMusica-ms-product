@@ -188,6 +188,60 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.IsAssignableFrom<IInstrumentsRepositoryPort>(_adapter);
         }
 
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateAsc()
+        {
+            // Arrange
+            var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+            var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+
+            await _adapter.CreateAsync(instrument1);
+            await Task.Delay(10);
+            await _adapter.CreateAsync(instrument2);
+            await Task.Delay(10);
+            await _adapter.CreateAsync(instrument3);
+
+            // Act
+            var result = await _adapter.GetAllAsync(SortDirection.Asc);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Result);
+            Assert.Equal(3, result.Result.Count);
+            Assert.Equal("Guitarra Primera", result.Result[0].Name);
+            Assert.Equal("Guitarra Segunda", result.Result[1].Name);
+            Assert.Equal("Guitarra Tercera", result.Result[2].Name);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateDesc()
+        {
+            // Arrange
+            var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+            var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+
+            await _adapter.CreateAsync(instrument1);
+            await Task.Delay(10);
+            await _adapter.CreateAsync(instrument2);
+            await Task.Delay(10);
+            await _adapter.CreateAsync(instrument3);
+
+            // Act
+            var result = await _adapter.GetAllAsync(SortDirection.Desc);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Result);
+            Assert.Equal(3, result.Result.Count);
+            Assert.Equal("Guitarra Tercera", result.Result[0].Name);
+            Assert.Equal("Guitarra Segunda", result.Result[1].Name);
+            Assert.Equal("Guitarra Primera", result.Result[2].Name);
+        }
+
         public void Dispose()
         {
             _context?.Dispose();

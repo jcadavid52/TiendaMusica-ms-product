@@ -33,14 +33,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 Instrument.Create("Guitarra acústica", "Guitarra acústica description test", InstrumentType.Stringed,500,10).Result
             };
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync())
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(It.IsAny<SortDirection>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments
                 });
             var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object);
             // Act
-            var result = await useCase.GetAllAsync();
+            var result = await useCase.GetAllAsync(SortDirection.Desc);
             // Assert
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
@@ -53,7 +53,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task GetAllAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
         {
             // Arrange
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync())
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(It.IsAny<SortDirection>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Errors = new List<TiendaMusicaError>

@@ -21,11 +21,18 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             _circuitBreakerPolicy = circuitBreakerPolicy;
         }
 
-        public async Task<Results<IList<Instrument>>> GetAllAsync()
+        public async Task<Results<IList<Instrument>>> GetAllAsync(SortDirection sortDirection = SortDirection.Asc)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
-                var instruments = await _context.Instruments.ToListAsync();
+                IQueryable<Instrument> query = _context.Instruments;
+
+                if (sortDirection == SortDirection.Desc)
+                    query = query.OrderByDescending(i => i.CreationDateUtc);
+                else
+                    query = query.OrderBy(i => i.CreationDateUtc);
+
+                var instruments = await query.ToListAsync();
                 return new Results<IList<Instrument>> { Result = instruments };
             });
         }

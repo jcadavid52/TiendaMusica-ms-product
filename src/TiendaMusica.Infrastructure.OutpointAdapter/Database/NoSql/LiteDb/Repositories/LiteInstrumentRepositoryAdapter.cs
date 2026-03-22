@@ -19,12 +19,18 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             _context = context;
         }
 
-        public async Task<Results<IList<Instrument>>> GetAllAsync()
+        public async Task<Results<IList<Instrument>>> GetAllAsync(SortDirection sortDirection = SortDirection.Asc)
         {
             var instruments = await Task.Run(() =>
             {
                 var collection = _context.InstrumentsCollection;
-                var documents = collection.FindAll().ToList();
+                IEnumerable<InstrumentDocument> documents;
+
+                if (sortDirection == SortDirection.Desc)
+                    documents = collection.FindAll().OrderByDescending(x => x.CreationDateUtc).ToList();
+                else
+                    documents = collection.FindAll().OrderBy(x => x.CreationDateUtc).ToList();
+
                 return documents.Select(x => _mapper.Map<Instrument>(x)).ToList();
             });
 

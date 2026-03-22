@@ -1,4 +1,5 @@
 ﻿using TiendaMusica.Application.Dtos;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -22,10 +23,10 @@ namespace TiendaMusica.Application.UseCases.Instruments
             _instrumentCreateValidationService = instrumentCreateValidationService;
             _logger = logger;
         }
-        public async Task<Results<IList<Instrument>>> GetAllAsync()
+        public async Task<Results<IList<Instrument>>> GetAllAsync(SortDirection sortDirection = SortDirection.Desc)
         {
             _logger.LogInformation("Inicialización Obtención de todos los instrumentos desde el caso de uso");
-            var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
+            var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync(sortDirection);
 
             if (resultInstruments.HasErrors)
             {
