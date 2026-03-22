@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Net;
@@ -22,16 +23,19 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         private readonly IInstrumentUseCase _instrumentUseCase;
         private readonly IMapper _mapper;
         private readonly IRestTools _restTools;
+        private readonly ILogger<InstrumentController> _logger;
 
         public InstrumentController(
             IInstrumentUseCase instrumentUseCase,
             IMapper mapper,
-            IRestTools restTools
+            IRestTools restTools,
+            ILogger<InstrumentController> logger
             )
         {
             _instrumentUseCase = instrumentUseCase;
             _mapper = mapper;
             _restTools = restTools;
+            _logger = logger;
         }
         [HttpGet]
         [SwaggerOperation(Summary = "Permite listar instrumentos", Description = "Permite obtener todos los instrumentos que existen en el catálogo.")]
@@ -42,6 +46,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAsync()
         {
+            _logger.LogInformation("(endpoint api rest) - Iniciando  proceso para obtener todos los instrumentos");
             var response = new Results<IList<InstrumentResponse>>();
 
             var instruments = await _instrumentUseCase.GetAllAsync();
@@ -49,13 +54,16 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             if (instruments.HasErrors)
             {
                 response.AddErrors(instruments.Errors);
+                _logger.LogWarning("(endpoint api rest) - Se encontraron errores al obtener los instrumentos llamando al caso de uso: {Errors}", instruments.Errors);
             }
             else
             {
                 response.Result = instruments.Result.Select(instrument => _mapper.Map<InstrumentResponse>(instrument)).ToList();
+                _logger.LogInformation("(endpoint api rest) - Proceso para obtener todos los instrumentos finalizado exitosamente con {Count} instrumentos", response.Result.Count);
             }
 
             int statusCode = _restTools.GetHttpStatusCode(response.Errors);
+            _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de obtener todos los instrumentos", statusCode);
             return StatusCode(statusCode, response);
         }
 
@@ -69,6 +77,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create([FromBody] InstrumentRequest request)
         {
+            _logger.LogInformation("(endpoint api rest) - Iniciando proceso para crear un nuevo instrumento con los datos: {@Request}", request);
             var response = new Results<InstrumentResponse>();
 
             var validator = new InstrumentRequestValidator();
@@ -80,6 +89,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                    ErrorCode.VALIDATION_ERROR,
                    $"Error en la propiedad {error.PropertyName}: {error.ErrorMessage}")
                 ));
+                _logger.LogWarning("(endpoint api rest) - Validación fallida del resquest para la solicitud de creación de instrumento: {Errors}", response.Errors);
                 return BadRequest(response);
             }
 
@@ -90,13 +100,16 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             if (instrumentCreate.HasErrors)
             {
                 response.AddErrors(instrumentCreate.Errors);
+                _logger.LogWarning("(endpoint api rest) - Se encontraron errores al crear el instrumento llamando al caso de uso: {Errors}", instrumentCreate.Errors);
             }
             else
             {
                 response.Result = _mapper.Map<InstrumentResponse>(instrumentCreate.Result);
+                _logger.LogInformation("(endpoint api rest) - Proceso para crear un nuevo instrumento finalizado exitosamente con el ID: {InstrumentId}", response.Result.Id);
             }
 
             int statusCode = _restTools.GetHttpStatusCode(response.Errors, (int)HttpStatusCode.Created);
+            _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de creación de instrumento", statusCode);
             return StatusCode(statusCode, response);
         }
     }

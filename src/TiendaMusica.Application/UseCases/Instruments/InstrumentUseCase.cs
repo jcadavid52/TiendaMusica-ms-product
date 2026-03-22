@@ -3,6 +3,7 @@ using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
+using Microsoft.Extensions.Logging;
 
 namespace TiendaMusica.Application.UseCases.Instruments
 {
@@ -10,41 +11,65 @@ namespace TiendaMusica.Application.UseCases.Instruments
     {
         private readonly IInstrumentsRepositoryPort _instrumentsRepositoryPorts;
         private readonly IInstrumentCreateValidationService _instrumentCreateValidationService;
+        private readonly ILogger<InstrumentUseCase> _logger;
         public InstrumentUseCase(
             IInstrumentsRepositoryPort instrumentsRepositoryPorts,
-            IInstrumentCreateValidationService instrumentCreateValidationService
+            IInstrumentCreateValidationService instrumentCreateValidationService,
+            ILogger<InstrumentUseCase> logger
             )
         {
             _instrumentsRepositoryPorts = instrumentsRepositoryPorts;
             _instrumentCreateValidationService = instrumentCreateValidationService;
+            _logger = logger;
         }
         public async Task<Results<IList<Instrument>>> GetAllAsync()
         {
+            _logger.LogInformation("Inicialización Obtención de todos los instrumentos desde el caso de uso");
             var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
 
-            if (resultInstruments.HasErrors) 
+            if (resultInstruments.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores llamando al respositorio sql server:{Errors}", resultInstruments.Errors);
                 return new Results<IList<Instrument>>().AddErrors(resultInstruments.Errors);
+            }
 
+            _logger.LogInformation("Retornando todos los instrumentos exitosamente con {Count} instrumentos desde el caso de uso", resultInstruments.Result.Count);
             return new Results<IList<Instrument>> { Result = resultInstruments.Result };
         }
         public async Task<Results<Instrument>> CreateAsync(CreateInstrumentCommand instrumentCommand)
         {
+            _logger.LogInformation("Inicialización creación instrumento desde el caso de uso");
             var results = new Results<Instrument>();
 
             try
             {
                 var currentLimitStockResult = await _instrumentsRepositoryPorts.GetStockByType(instrumentCommand.Type);
-                if (currentLimitStockResult.HasErrors) return results.AddErrors(currentLimitStockResult.Errors);
+                if (currentLimitStockResult.HasErrors)
+                {
+                    _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para obtener el stock actual por tipo:{Errors}", currentLimitStockResult.Errors);
+                    return results.AddErrors(currentLimitStockResult.Errors);
+                }
 
                 var validation = _instrumentCreateValidationService.ValidateLimitStockByType(instrumentCommand.Stock,currentLimitStockResult.Result, instrumentCommand.Type);
-                if (!validation.IsSuccess && validation.HasErrors) return results.AddErrors(validation.Errors);
+                if (!validation.IsSuccess && validation.HasErrors)
+                {
+                    _logger.LogWarning("Error validación de stock por tipo '{Type}':{Errors}",instrumentCommand.Type, validation.Errors);
+                    return results.AddErrors(validation.Errors);
+                } 
 
                 var existing = await _instrumentsRepositoryPorts.GetByNameAsync(instrumentCommand.Name);
-                if (existing.HasErrors) return results.AddErrors(existing.Errors);
+                if (existing.HasErrors)
+                {
+                    _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para obtener instrumento por nombre:{Errors}", existing.Errors);
+                    return results.AddErrors(existing.Errors);
+                } 
 
                 if (existing.Result != null)
+                {
+                    _logger.LogWarning("Conflicto al crear instrumento, ya existe un instrumento con el mismo nombre: '{Name}'", instrumentCommand.Name);
                     return results.AddError(ErrorCode.CONFLICT_ERROR, $"Ya existe: '{instrumentCommand.Name}'");
-
+                }
+                    
                 var instrument = Instrument.Create(
                     instrumentCommand.Name,
                     instrumentCommand.Description,
@@ -53,13 +78,27 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     instrumentCommand.Stock
                     );
 
-                if(instrument.HasErrors) return results.AddErrors(instrument.Errors);
+                if (instrument.HasErrors)
+                {
+                    _logger.LogWarning("Error validación creación de instrumento en dominio: {Errors}", instrument.Errors);
+                    return results.AddErrors(instrument.Errors);
+                }
 
                 var resultCreate = await _instrumentsRepositoryPorts.CreateAsync(instrument.Result);
-                return resultCreate.HasErrors ? results.AddErrors(resultCreate.Errors) : resultCreate;
+
+                if (resultCreate.HasErrors)
+                {
+                    _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para crear instrumento:{Errors}", resultCreate.Errors);
+                    return results.AddErrors(resultCreate.Errors);
+                }
+
+                _logger.LogInformation("retornando instrumento creado exitosamente desde el caso de uso con el ID: {InstrumentId}", resultCreate.Result.Id);
+
+                return resultCreate;
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Error al contruir objeto de dominio: {Message}", ex.Message);
                 return results.AddError(ErrorCode.VALIDATION_ERROR, $"Error Domain: {ex.Message}");
             }
         }
