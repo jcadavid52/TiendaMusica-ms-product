@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
+using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Domain.Enums;
@@ -33,14 +34,18 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 Instrument.Create("Guitarra acústica", "Guitarra acústica description test", InstrumentType.Stringed,500,10).Result
             };
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(It.IsAny<SortDirection>()))
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+                It.IsAny<SortDirection>(),
+                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+                It.IsAny<int?>(),
+                It.IsAny<int?>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments
                 });
             var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object);
             // Act
-            var result = await useCase.GetAllAsync(SortDirection.Desc);
+            var result = await useCase.GetAllAsync();
             // Assert
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
@@ -53,7 +58,12 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task GetAllAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
         {
             // Arrange
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(It.IsAny<SortDirection>()))
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+                It.IsAny<SortDirection>(),
+                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+                It.IsAny<int?>(),
+                It.IsAny<int?>())
+                )
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Errors = new List<TiendaMusicaError>

@@ -9,6 +9,8 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Injections;
 
 try
 {
+    //args = new string[] { "instrument-add","", "A large double-reed woodwind instrument with a deep sound.","Wind","1200","1" };
+    //args = new string[] { "instrument-list" };
     //entrada del programa, se encarga de decidir si se ejecuta en modo cli o rest dependiendo de los argumentos que se le pasen
     if (args.Length > 0 && InstrumentParameters.parameters.Contains(args[0].ToLower()))
     {

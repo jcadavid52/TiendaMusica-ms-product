@@ -46,12 +46,16 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAsync(
-            [FromQuery, SwaggerParameter("Dirección de ordenamiento, ascendente o descendente: Asc, Desc")] SortDirection sortDirection = SortDirection.Desc)
+            [FromQuery, SwaggerParameter("Dirección de ordenamiento, ascendente o descendente por fecha de creación: Asc, Desc")] SortDirection sortDirection = SortDirection.Desc,
+            [FromQuery, SwaggerParameter("Número de página para paginación, valor entero positivo")] int pageNumber = 1,
+            [FromQuery, SwaggerParameter("Tamaño de página para paginación, valor entero positivo")] int pageSize = 10,
+            [FromQuery, SwaggerParameter("Término de búsqueda para filtrar instrumentos por nombre, descripción o tipo de instrumento")] string? search = null
+            )
         {
             _logger.LogInformation("(endpoint api rest) - Iniciando  proceso para obtener todos los instrumentos");
             var response = new Results<IList<InstrumentResponse>>();
-
-            var instruments = await _instrumentUseCase.GetAllAsync(sortDirection);
+            var query = new GetAllInstrumentQuery(sortDirection, search, pageSize, pageNumber);
+            var instruments = await _instrumentUseCase.GetAllAsync(query);
 
             if (instruments.HasErrors)
             {

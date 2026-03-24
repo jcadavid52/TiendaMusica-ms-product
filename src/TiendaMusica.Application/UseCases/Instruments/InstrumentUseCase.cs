@@ -1,10 +1,12 @@
-﻿using TiendaMusica.Application.Dtos;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
+using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
-using Microsoft.Extensions.Logging;
 
 namespace TiendaMusica.Application.UseCases.Instruments
 {
@@ -23,10 +25,50 @@ namespace TiendaMusica.Application.UseCases.Instruments
             _instrumentCreateValidationService = instrumentCreateValidationService;
             _logger = logger;
         }
-        public async Task<Results<IList<Instrument>>> GetAllAsync(SortDirection sortDirection = SortDirection.Desc)
+        public async Task<Results<IList<Instrument>>> GetAllAsync(GetAllInstrumentQuery? query = null)
         {
             _logger.LogInformation("Inicialización Obtención de todos los instrumentos desde el caso de uso");
-            var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync(sortDirection);
+
+            var resultInstruments = new Results<IList<Instrument>>();
+
+            if (query != null)
+            {
+                var filters = new List<Expression<Func<Instrument, bool>>>();
+
+                if (!string.IsNullOrWhiteSpace(query.Search))
+                {
+                    var searchTerm = query.Search.Trim();
+                    bool isEnumValue = Enum.TryParse<InstrumentType>(searchTerm, true, out var typeResult);
+
+                    if (isEnumValue)
+                    {
+                        filters.Add(b =>
+                        b.Name.Contains(searchTerm) ||
+                        b.Description.Contains(searchTerm) ||
+                        b.Type == typeResult
+                        );
+                    }
+                    else
+                    {
+                        filters.Add(b =>
+                         b.Name.Contains(searchTerm) ||
+                         b.Description.Contains(searchTerm)
+                         );
+                    }
+
+                }
+
+                resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync(
+                    skip: (query.PageNumber - 1) * query.PageSize,
+                    take: query.PageSize,
+                    filters: [.. filters],
+                    sortDirection: query.SortDirection
+                );
+            }
+            else
+            {
+                resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
+            }
 
             if (resultInstruments.HasErrors)
             {
@@ -51,26 +93,26 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     return results.AddErrors(currentLimitStockResult.Errors);
                 }
 
-                var validation = _instrumentCreateValidationService.ValidateLimitStockByType(instrumentCommand.Stock,currentLimitStockResult.Result, instrumentCommand.Type);
+                var validation = _instrumentCreateValidationService.ValidateLimitStockByType(instrumentCommand.Stock, currentLimitStockResult.Result, instrumentCommand.Type);
                 if (!validation.IsSuccess && validation.HasErrors)
                 {
-                    _logger.LogWarning("Error validación de stock por tipo '{Type}':{Errors}",instrumentCommand.Type, validation.Errors);
+                    _logger.LogWarning("Error validación de stock por tipo '{Type}':{Errors}", instrumentCommand.Type, validation.Errors);
                     return results.AddErrors(validation.Errors);
-                } 
+                }
 
                 var existing = await _instrumentsRepositoryPorts.GetByNameAsync(instrumentCommand.Name);
                 if (existing.HasErrors)
                 {
                     _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para obtener instrumento por nombre:{Errors}", existing.Errors);
                     return results.AddErrors(existing.Errors);
-                } 
+                }
 
                 if (existing.Result != null)
                 {
                     _logger.LogWarning("Conflicto al crear instrumento, ya existe un instrumento con el mismo nombre: '{Name}'", instrumentCommand.Name);
                     return results.AddError(ErrorCode.CONFLICT_ERROR, $"Ya existe: '{instrumentCommand.Name}'");
                 }
-                    
+
                 var instrument = Instrument.Create(
                     instrumentCommand.Name,
                     instrumentCommand.Description,

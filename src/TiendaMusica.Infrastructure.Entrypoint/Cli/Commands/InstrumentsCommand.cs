@@ -23,13 +23,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
             _logger = logger;
         }
 
-        public async Task GetAllAsync()
+        public async Task GetAllAsync(GetAllInstrumentQuery? query = null)
         {
             try
             {
                 _logger.LogInformation("(Entrypoint CLI) - Iniciando  proceso para obtener todos los instrumentos");
 
-                var instrumentsResult = await _instrumentUseCase.GetAllAsync();
+                var instrumentsResult = await _instrumentUseCase.GetAllAsync(query);
 
                 if (instrumentsResult.HasErrors)
                 {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Polly;
+using System.Linq.Expressions;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -21,19 +22,45 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             _circuitBreakerPolicy = circuitBreakerPolicy;
         }
 
-        public async Task<Results<IList<Instrument>>> GetAllAsync(SortDirection sortDirection = SortDirection.Asc)
+        public async Task<Results<IList<Instrument>>> GetAllAsync(
+            SortDirection sortDirection = SortDirection.Desc,
+            Expression<Func<Instrument, bool>>[]? filters = null,
+            int? skip = null,
+            int? take = null
+            )
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<Instrument> query = _context.Instruments;
+                IQueryable<Instrument> query = _context.Instruments.AsNoTracking();
 
                 if (sortDirection == SortDirection.Desc)
                     query = query.OrderByDescending(i => i.CreationDateUtc);
                 else
                     query = query.OrderBy(i => i.CreationDateUtc);
 
+                if (filters != null && filters.Any())
+                {
+                    foreach (var filter in filters)
+                    {
+                        query = query.Where(filter);
+                    }
+                }
+
+                if (skip.HasValue && skip.Value > 0)
+                {
+                    query = query.Skip(skip.Value);
+                }
+
+                if (take.HasValue && take.Value > 0)
+                {
+                    query = query.Take(take.Value);
+                }
+
                 var instruments = await query.ToListAsync();
-                return new Results<IList<Instrument>> { Result = instruments };
+                return new Results<IList<Instrument>>
+                {
+                    Result = instruments,
+                };
             });
         }
 
