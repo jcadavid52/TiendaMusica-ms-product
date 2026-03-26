@@ -55,6 +55,80 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         }
 
         [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsData()
+        {
+            // Arrange
+            var query = new GetAllInstrumentQuery(SortDirection.Asc, null, 10, 1);
+            var expectedInstruments = new List<Instrument>
+            {
+                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
+                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
+            };
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+                SortDirection.Asc,
+                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+                It.IsAny<int?>(),
+                It.IsAny<int?>()))
+                .ReturnsAsync(new Results<IList<Instrument>>
+                {
+                    Result = expectedInstruments
+                });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+
+            // Act
+            var result = await useCase.GetAllAsync(query);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(expectedInstruments.Count, result.Result.Count);
+            Assert.Equal("Guitarra eléctrica", result.Result[0].Name);
+            Assert.Equal("Piano", result.Result[1].Name);
+            Assert.Equal("Saxofón", result.Result[2].Name);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsData()
+        {
+            // Arrange
+            var query = new GetAllInstrumentQuery(SortDirection.Desc, null, 10, 1);
+            var expectedInstruments = new List<Instrument>
+            {
+                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result,
+                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result
+            };
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+                SortDirection.Desc,
+                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+                It.IsAny<int?>(),
+                It.IsAny<int?>()))
+                .ReturnsAsync(new Results<IList<Instrument>>
+                {
+                    Result = expectedInstruments
+                });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+
+            // Act
+            var result = await useCase.GetAllAsync(query);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(expectedInstruments.Count, result.Result.Count);
+            Assert.Equal("Saxofón", result.Result[0].Name);
+            Assert.Equal("Piano", result.Result[1].Name);
+            Assert.Equal("Guitarra eléctrica", result.Result[2].Name);
+        }
+
+        [Fact]
         public async Task GetAllAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
         {
             // Arrange
