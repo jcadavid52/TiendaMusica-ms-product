@@ -66,9 +66,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
 
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
-            instrument.Id = Guid.NewGuid().ToString();
-            instrument.CreationDateUtc = DateTime.UtcNow;
-
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
                 await _context.Instruments.AddAsync(instrument);

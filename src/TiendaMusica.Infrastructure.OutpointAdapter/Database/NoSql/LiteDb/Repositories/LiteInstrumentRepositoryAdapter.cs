@@ -83,9 +83,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
                 doc.CreationDateUtc = DateTime.UtcNow;
                 collection.Insert(doc);
 
-                instrument.Id = doc.Id;
-                instrument.CreationDateUtc = doc.CreationDateUtc;
-
                 return doc;
             });
 

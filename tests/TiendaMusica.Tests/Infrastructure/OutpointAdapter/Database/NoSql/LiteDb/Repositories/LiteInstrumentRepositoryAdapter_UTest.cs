@@ -126,7 +126,6 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
         {
             // Arrange
             var instrument = Instrument.Create("Nueva Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            Assert.Null(instrument.Id);
 
             // Act
             var result = await _adapter.CreateAsync(instrument);

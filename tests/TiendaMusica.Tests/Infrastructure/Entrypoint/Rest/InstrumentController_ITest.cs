@@ -2,6 +2,7 @@
 using Moq;
 using Newtonsoft.Json;
 using System.Collections;
+using System.Text;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Domain.Enums;
@@ -20,6 +21,112 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         {
             _factory = factory;
             _client = _factory.CreateClient();
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsDataStatusCode200()
+        {
+            //Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+            string url = "/v1/instrument?sortDirection=Asc";
+
+            //Act
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
+
+            //Assert
+            Assert.NotNull(responseObject);
+            Assert.NotNull(responseObject.Result);
+            Assert.True(responseObject.IsSuccess);
+            Assert.Equal(instruments.Count, responseObject.Result.Count);
+            Assert.Equal(instruments[0].Name, responseObject.Result[9].Name);
+            Assert.Equal(instruments[1].Name, responseObject.Result[8].Name);
+            Assert.Equal(instruments[2].Name, responseObject.Result[7].Name);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsDataStatusCode200()
+        {
+            //Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+
+            string url = "/v1/instrument?sortDirection=Desc";
+
+            //Act
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
+
+            //Assert
+            Assert.NotNull(responseObject);
+            Assert.NotNull(responseObject.Result);
+            Assert.True(responseObject.IsSuccess);
+            Assert.Equal(instruments.Count, responseObject.Result.Count);
+            Assert.Equal(instruments[9].Name, responseObject.Result[9].Name);
+            Assert.Equal(instruments[8].Name, responseObject.Result[8].Name);
+            Assert.Equal(instruments[7].Name, responseObject.Result[7].Name);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsFilteredBySearch_WhenSearchTermMatches()
+        {
+            //Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+            string searchTerm = instruments[0].Name;
+            string url = $"/v1/instrument?search={searchTerm}";
+
+            //Act
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
+
+            //Assert
+            Assert.NotNull(responseObject);
+            Assert.NotNull(responseObject.Result);
+            Assert.True(responseObject.IsSuccess);
+            Assert.Single(responseObject.Result);
+            Assert.Equal(instruments[0].Name, responseObject.Result[0].Name);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnInstrumentsPaginated_WhenPageParametersAreProvided()
+        {
+            //Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+
+            string urlPage1 = "/v1/instrument?pageNumber=1&pageSize=5&sortDirection=Desc";
+
+            //Act - Page 1 (most recent first with Desc)
+            var client = _factory.CreateClient();
+            var responsePage1 = await client.GetAsync(urlPage1);
+            var responseStringPage1 = await responsePage1.Content.ReadAsStringAsync();
+            var responseObjectPage1 = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseStringPage1);
+
+            //Assert - Page 1
+            Assert.NotNull(responseObjectPage1);
+            Assert.NotNull(responseObjectPage1.Result);
+            Assert.True(responseObjectPage1.IsSuccess);
+            Assert.Equal(5, responseObjectPage1.Result.Count);
+            Assert.Equal(instruments[0].Name, responseObjectPage1.Result[0].Name);
+            Assert.Equal(instruments[4].Name, responseObjectPage1.Result[4].Name);
+
+            //Act - Page 2
+            string urlPage2 = "/v1/instrument?pageNumber=2&pageSize=5&sortDirection=Desc";
+            var responsePage2 = await client.GetAsync(urlPage2);
+            var responseStringPage2 = await responsePage2.Content.ReadAsStringAsync();
+            var responseObjectPage2 = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseStringPage2);
+
+            //Assert - Page 2
+            Assert.NotNull(responseObjectPage2);
+            Assert.NotNull(responseObjectPage2.Result);
+            Assert.True(responseObjectPage2.IsSuccess);
+            Assert.Equal(5, responseObjectPage2.Result.Count);
+            Assert.Equal(instruments[5].Name, responseObjectPage2.Result[0].Name);
+            Assert.Equal(instruments[9].Name, responseObjectPage2.Result[4].Name);
         }
 
         [Fact]
@@ -98,7 +205,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 1500.00m,
                 1
                 );
-            var content = new StringContent(JsonConvert.SerializeObject(newInstrument), System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonConvert.SerializeObject(newInstrument), Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync(url, content);
@@ -125,7 +232,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             // Arrange
             var url = "/v1/instrument";
             int codeExpected = 400;
-            var content = new StringContent(JsonConvert.SerializeObject(request), System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync(url, content);
@@ -152,7 +259,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 1500.00m,
                 1
                 );
-            var content = new StringContent(JsonConvert.SerializeObject(newInstrument), System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonConvert.SerializeObject(newInstrument), Encoding.UTF8, "application/json");
 
             // Act
             var errorClient = _factory.WithWebHostBuilder(builder =>
@@ -188,6 +295,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             Assert.True(responseObject.Errors.Any());
             Assert.Equal(codeExpected, (int)response.StatusCode);
         }
+
 
         private class ValidationTestData : IEnumerable<object[]>
         {
