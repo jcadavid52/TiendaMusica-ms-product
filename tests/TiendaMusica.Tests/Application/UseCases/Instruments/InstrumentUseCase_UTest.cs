@@ -16,12 +16,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         private readonly Mock<IInstrumentsRepositoryPort> _instrumentsRepositoryPortMock;
         private readonly Mock<IInstrumentCreateValidationService> _instrumentCreateValidationService;
         private readonly Mock<ILogger<InstrumentUseCase>> _loggerMock;
+        private readonly Mock<IMessagePublisherPort> _messagePublisherMock;
 
         public InstrumentUseCase_UTest()
         {
             _instrumentsRepositoryPortMock = new Mock<IInstrumentsRepositoryPort>();
             _instrumentCreateValidationService = new Mock<IInstrumentCreateValidationService>();
             _loggerMock = new Mock<ILogger<InstrumentUseCase>>();
+            _messagePublisherMock = new Mock<IMessagePublisherPort>();
         }
 
         [Fact]
@@ -43,7 +45,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 {
                     Result = expectedInstruments
                 });
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object,_messagePublisherMock.Object);
             // Act
             var result = await useCase.GetAllAsync();
             // Assert
@@ -76,7 +78,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     Result = expectedInstruments
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object,_messagePublisherMock.Object);
 
             // Act
             var result = await useCase.GetAllAsync(query);
@@ -113,7 +115,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     Result = expectedInstruments
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
 
             // Act
             var result = await useCase.GetAllAsync(query);
@@ -145,7 +147,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
                     }
                 });
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.GetAllAsync();
             // Assert
@@ -172,7 +174,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -196,7 +198,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -223,7 +225,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -247,7 +249,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -277,7 +279,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -310,7 +312,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert
@@ -337,7 +339,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .Throws(new ArgumentException("Exception forzada en el UseCase"));
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.CreateAsync(createCommand);
             // Assert

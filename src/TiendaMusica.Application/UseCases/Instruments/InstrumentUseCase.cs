@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -15,15 +16,18 @@ namespace TiendaMusica.Application.UseCases.Instruments
         private readonly IInstrumentsRepositoryPort _instrumentsRepositoryPorts;
         private readonly IInstrumentCreateValidationService _instrumentCreateValidationService;
         private readonly ILogger<InstrumentUseCase> _logger;
+        private readonly IMessagePublisherPort _messagePublisher;
         public InstrumentUseCase(
             IInstrumentsRepositoryPort instrumentsRepositoryPorts,
             IInstrumentCreateValidationService instrumentCreateValidationService,
-            ILogger<InstrumentUseCase> logger
+            ILogger<InstrumentUseCase> logger,
+            IMessagePublisherPort messagePublisher
             )
         {
             _instrumentsRepositoryPorts = instrumentsRepositoryPorts;
             _instrumentCreateValidationService = instrumentCreateValidationService;
             _logger = logger;
+            _messagePublisher = messagePublisher;
         }
         public async Task<Results<IList<Instrument>>> GetAllAsync(GetAllInstrumentQuery? query = null)
         {
@@ -134,6 +138,9 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para crear instrumento:{Errors}", resultCreate.Errors);
                     return results.AddErrors(resultCreate.Errors);
                 }
+
+                _logger.LogInformation("Publicando evento de instrumento creado con el ID: {InstrumentId}", resultCreate.Result.Id);
+                await _messagePublisher.PublishAsync(new InstrumentCreatedEvent(resultCreate.Result));
 
                 _logger.LogInformation("retornando instrumento creado exitosamente desde el caso de uso con el ID: {InstrumentId}", resultCreate.Result.Id);
 

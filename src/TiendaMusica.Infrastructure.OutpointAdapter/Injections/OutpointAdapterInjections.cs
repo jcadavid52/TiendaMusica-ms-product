@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
+using RabbitMQ.Client;
 using System.Reflection;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
@@ -10,6 +11,7 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories;
+using TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 {
@@ -18,6 +20,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
         public static IServiceCollection AddOutpointAdapterInjections(this IServiceCollection services, IConfiguration configuration, string currentEnvironment)
         {
             AddPollyInjections(services, configuration);
+            AddRabbitMqInjections(services, configuration);
 
             if (currentEnvironment == "Development")
             {
@@ -83,6 +86,25 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 onHalfOpen: () => { });
 
             services.AddSingleton<IAsyncPolicy>(circuitBreakerPolicy);
+        }
+
+        private static void AddRabbitMqInjections(IServiceCollection services, IConfiguration configuration)
+        {
+            var host = configuration.GetSection("RabbitMQ:Host").Value ?? "localhost";
+            var port = int.Parse(configuration.GetSection("RabbitMQ:Port").Value ?? "5672");
+            var username = configuration.GetSection("RabbitMQ:Username").Value ?? "guest";
+            var password = configuration.GetSection("RabbitMQ:Password").Value ?? "guest";
+
+            var factory = new ConnectionFactory
+            {
+                HostName = host,
+                Port = port,
+                UserName = username,
+                Password = password
+            };
+
+            services.AddSingleton<IConnection>(sp => factory.CreateConnectionAsync().GetAwaiter().GetResult());
+            services.AddScoped<IMessagePublisherPort, RabbitMqPublisherAdapter>();
         }
     }
 
