@@ -14,7 +14,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 
             response.AddError(ErrorCode.VALIDATION_ERROR, "Error en el request de la solicitud, revise e intente nuevamente");
 
-            yield return SwaggerExample.Create("ErrorInternalServerInstrumentResponseExample", response);
+            yield return SwaggerExample.Create("ErrorBadRequestInstrumentResponseExample", response);
         }
     }
 }

@@ -1,0 +1,8 @@
+1.revisar los testing unitarios pendientes
+2.optimización de código
+3.agregar utilidades para formatos fecha
+4.cambiar nombre solution a ms-instruments
+5.agregar redis cache
+6.agregar autenticación y autorización
+7.agregar rate limit
+8.analizar responses de cli y rest
