@@ -18,7 +18,7 @@ namespace TiendaMusica.Domain.Models
             InstrumentType type,
             decimal price,
             int stock
-            ): base(Guid.NewGuid().ToString(),DateTime.UtcNow)
+            ) : base(Guid.NewGuid().ToString(), DateTime.UtcNow)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(stock);
             ArgumentNullException.ThrowIfNull(stock, nameof(stock));

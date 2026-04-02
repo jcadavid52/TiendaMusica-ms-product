@@ -6,15 +6,15 @@
         public T Result { get; set; }
 
         public Results()
-        { 
+        {
             _errors = new List<TiendaMusicaError>();
         }
 
-        public List<TiendaMusicaError> Errors 
+        public List<TiendaMusicaError> Errors
         {
             get
-            { 
-              _errors ??= new List<TiendaMusicaError>();
+            {
+                _errors ??= new List<TiendaMusicaError>();
                 return _errors;
             }
             set
@@ -48,7 +48,7 @@
 
         public Results<T> AddErrors(IEnumerable<TiendaMusicaError> errors)
         {
-            if(errors != null)
+            if (errors != null)
             {
                 Errors.AddRange(errors);
             }
@@ -58,8 +58,8 @@
 
         public Results<T> AddError(TiendaMusicaError error)
         {
-            Errors.Add(error); 
-            return this; 
+            Errors.Add(error);
+            return this;
         }
     }
 }

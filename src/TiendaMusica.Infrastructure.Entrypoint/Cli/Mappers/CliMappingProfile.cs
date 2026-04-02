@@ -4,7 +4,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Mappers
 {
-    internal class CliMappingProfile:Profile
+    internal class CliMappingProfile : Profile
     {
         public CliMappingProfile()
         {

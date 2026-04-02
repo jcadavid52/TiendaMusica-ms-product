@@ -5,6 +5,6 @@
         public const string Help = "help";
         public const string Add = "instrument-add";
         public const string List = "instrument-list";
-        public static string[] parameters = { Add, List,Help};
+        public static string[] parameters = { Add, List, Help };
     }
 }

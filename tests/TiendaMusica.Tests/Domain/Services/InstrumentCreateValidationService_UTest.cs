@@ -1,5 +1,4 @@
-﻿using Moq;
-using TiendaMusica.Domain.Enums;
+﻿using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Services;
 
 namespace TiendaMusica.Tests.Domain.Services

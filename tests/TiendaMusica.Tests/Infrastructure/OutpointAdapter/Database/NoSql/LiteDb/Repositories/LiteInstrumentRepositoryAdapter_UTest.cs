@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
-using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
@@ -35,11 +34,11 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             services.AddAutoMapper(cfg => cfg.AddProfile<InstrumentDocumentProfile>());
             var serviceProvider = services.BuildServiceProvider();
             _mapper = serviceProvider.GetRequiredService<IMapper>();
-            
+
             var liteDbConfig = new LiteDbConfig { Path = ":memory:" };
             var options = Options.Create(liteDbConfig);
             _context = new InstrumentLiteDbContext(options);
-            
+
             _adapter = new LiteInstrumentRepositoryAdapter(_mapper, _context);
         }
 
@@ -146,7 +145,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
             var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 30).Result;
-            
+
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
             await _adapter.CreateAsync(instrument3);
@@ -183,7 +182,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             var stringedInstrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var windInstrument = Instrument.Create("Flauta", "Descripción test", InstrumentType.Wind, 300, 5).Result;
             var keyboardInstrument = Instrument.Create("Piano", "Descripción test", InstrumentType.keyboard, 1000, 2).Result;
-            
+
             await _adapter.CreateAsync(stringedInstrument);
             await _adapter.CreateAsync(windInstrument);
             await _adapter.CreateAsync(keyboardInstrument);

@@ -3,7 +3,7 @@ using TiendaMusica.Domain.Models;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
 {
-    public class InstrumentSqlServerDbContext:DbContext
+    public class InstrumentSqlServerDbContext : DbContext
     {
         private const string SchemaName = "ms-instruments";
         public DbSet<Instrument> Instruments { get; set; }
@@ -17,7 +17,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Instrument>(entity =>
             {
-                entity.ToTable("Instruments",SchemaName);
+                entity.ToTable("Instruments", SchemaName);
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(500);

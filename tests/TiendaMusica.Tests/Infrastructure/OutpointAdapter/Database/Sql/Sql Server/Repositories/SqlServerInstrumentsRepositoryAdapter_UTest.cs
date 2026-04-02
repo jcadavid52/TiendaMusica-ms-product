@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Polly;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
-using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories;
@@ -44,7 +42,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             // Arrange
             var instrument1 = Instrument.Create("Guitarra Eléctrica", "Descripción test 1", InstrumentType.Stringed, 500, 10).Result;
             var instrument2 = Instrument.Create("Guitarra Acústica", "Descripción test 2", InstrumentType.Stringed, 500, 15).Result;
-            
+
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
 
@@ -128,7 +126,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
             var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 30).Result;
-            
+
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
             await _adapter.CreateAsync(instrument3);
@@ -165,7 +163,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             var stringedInstrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var windInstrument = Instrument.Create("Flauta", "Descripción test", InstrumentType.Wind, 300, 5).Result;
             var keyboardInstrument = Instrument.Create("Piano", "Descripción test", InstrumentType.keyboard, 1000, 2).Result;
-            
+
             await _adapter.CreateAsync(stringedInstrument);
             await _adapter.CreateAsync(windInstrument);
             await _adapter.CreateAsync(keyboardInstrument);

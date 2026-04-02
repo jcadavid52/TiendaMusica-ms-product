@@ -58,9 +58,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q => 
-                    q.SortDirection == SortDirection.Asc && 
-                    q.PageSize == 10 && 
+                It.Is<GetAllInstrumentQuery>(q =>
+                    q.SortDirection == SortDirection.Asc &&
+                    q.PageSize == 10 &&
                     q.PageNumber == 1
                 )), Times.Once);
         }
@@ -89,9 +89,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q => 
-                    q.SortDirection == SortDirection.Desc && 
-                    q.PageSize == 10 && 
+                It.Is<GetAllInstrumentQuery>(q =>
+                    q.SortDirection == SortDirection.Desc &&
+                    q.PageSize == 10 &&
                     q.PageNumber == 1
                 )), Times.Once);
         }
@@ -118,8 +118,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q => 
-                    q.Search == "Guitarra" && 
+                It.Is<GetAllInstrumentQuery>(q =>
+                    q.Search == "Guitarra" &&
                     q.SortDirection == SortDirection.Desc
                 )), Times.Once);
         }
@@ -147,8 +147,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q => 
-                    q.PageSize == 5 && 
+                It.Is<GetAllInstrumentQuery>(q =>
+                    q.PageSize == 5 &&
                     q.PageNumber == 2
                 )), Times.Once);
         }
@@ -198,7 +198,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Assert
             _mapperMock.Verify(m => m.Map<CreateInstrumentCommand>(cliRequest), Times.Once);
             _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(
-                It.Is<CreateInstrumentCommand>(cmd => 
+                It.Is<CreateInstrumentCommand>(cmd =>
                     cmd.Name == "Guitarra Eléctrica" &&
                     cmd.Description == "Descripción test" &&
                     cmd.Type == InstrumentType.Stringed &&

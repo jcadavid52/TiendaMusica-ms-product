@@ -45,7 +45,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 {
                     Result = expectedInstruments
                 });
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object,_messagePublisherMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.GetAllAsync();
             // Assert
@@ -78,7 +78,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     Result = expectedInstruments
                 });
 
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object,_messagePublisherMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
 
             // Act
             var result = await useCase.GetAllAsync(query);
@@ -147,7 +147,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
                     }
                 });
-            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object,_loggerMock.Object, _messagePublisherMock.Object);
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
             var result = await useCase.GetAllAsync();
             // Assert
@@ -190,8 +190,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> 
-                { 
+                .ReturnsAsync(new Results<int>
+                {
                     Errors = new List<TiendaMusicaError>
                     {
                          new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")

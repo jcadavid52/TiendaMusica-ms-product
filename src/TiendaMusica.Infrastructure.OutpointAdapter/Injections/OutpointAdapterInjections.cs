@@ -60,7 +60,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
         {
             var connectionString = configuration.GetSection("Database:SQL:ConnectionStrings:SqlConnection").Value
                 ?? throw new ArgumentNullException("Error al obtener cadena de conexión");
-            
+
             services.AddDbContext<InstrumentSqlServerDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);

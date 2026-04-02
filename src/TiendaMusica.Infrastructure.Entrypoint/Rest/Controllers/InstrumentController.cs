@@ -8,13 +8,11 @@ using System.Net;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Domain.Enums;
-using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
-using TiendaMusica.Utilities;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 {
     [ApiController]
