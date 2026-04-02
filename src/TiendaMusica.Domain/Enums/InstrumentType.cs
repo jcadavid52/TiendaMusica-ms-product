@@ -4,6 +4,7 @@
     {
         Wind,
         Stringed,
-        keyboard
+        keyboard,
+        Percussion,
     }
 }

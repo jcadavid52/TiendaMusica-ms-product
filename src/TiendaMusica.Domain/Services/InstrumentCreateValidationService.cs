@@ -34,6 +34,7 @@ namespace TiendaMusica.Domain.Services
                 InstrumentType.Wind => (int)InstrumentLimitStockByType.Wind,
                 InstrumentType.Stringed => (int)InstrumentLimitStockByType.Stringed,
                 InstrumentType.keyboard => (int)InstrumentLimitStockByType.keyboard,
+                InstrumentType.Percussion => (int)InstrumentLimitStockByType.Percussion,
                 _ => 0
             };
         }
