@@ -8,6 +8,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos
         string Description,
         InstrumentType Type,
         decimal Price,
-        int Stock
+        int Stock,
+        DateTime CreationDateUtc
         );
 }

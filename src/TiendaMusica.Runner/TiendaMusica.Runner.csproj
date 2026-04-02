@@ -10,6 +10,7 @@
     <ProjectReference Include="..\TiendaMusica.Application\TiendaMusica.Application.csproj" />
     <ProjectReference Include="..\TiendaMusica.Infrastructure.Entrypoint\TiendaMusica.Infrastructure.Entrypoint.csproj" />
     <ProjectReference Include="..\TiendaMusica.Infrastructure.OutpointAdapter\TiendaMusica.Infrastructure.OutpointAdapter.csproj" />
+    <ProjectReference Include="..\TiendaMusica.Utilities\TiendaMusica.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,14 +21,18 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
                     "A string instrument",
                     InstrumentType.Stringed,
                     199.99m,
-                    10),
+                    10,
+                    DateTime.UtcNow.AddDays(-10)
+                    ),
                 new InstrumentResponse(
                     "2",
                     "Piano",
                     "A keyboard instrument",
                     InstrumentType.Wind,
                     499.99m,
-                    5)
+                    5,
+                    DateTime.UtcNow.AddDays(-5)
+                    )
             };
 
             response.Result = instruments;

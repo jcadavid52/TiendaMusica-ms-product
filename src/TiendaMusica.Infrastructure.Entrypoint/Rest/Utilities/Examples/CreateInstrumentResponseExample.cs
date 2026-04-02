@@ -19,7 +19,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
                     "A string instrument",
                     InstrumentType.Stringed,
                     199.99m,
-                    10);
+                    10,
+                    DateTime.UtcNow.AddDays(-10)
+                    );
 
             response.Result = instrument;
 

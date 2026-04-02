@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\TiendaMusica.Application\TiendaMusica.Application.csproj" />
+	  <ProjectReference Include="..\TiendaMusica.Utilities\TiendaMusica.Utilities.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Cli.Constants;
 using TiendaMusica.Infrastructure.Entrypoint.Injections;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Middleware;
 using TiendaMusica.Infrastructure.OutpointAdapter.Injections;
+using TiendaMusica.Utilities.Injections;
 
 try
 {
@@ -30,6 +31,7 @@ try
         cliBuilder.Services.AddApplicationInjections();
         cliBuilder.Services.AddOutpointAdapterInjections(cliBuilder.Configuration, cliBuilder.Environment.EnvironmentName);
         cliBuilder.Services.AddCliInjections();
+        cliBuilder.Services.AddUtilitiesInjections();
         #endregion
 
         using IHost host = cliBuilder.Build();
@@ -58,6 +60,7 @@ try
     builder.Services.AddApplicationInjections();
     builder.Services.AddOutpointAdapterInjections(builder.Configuration, builder.Environment.EnvironmentName);
     builder.Services.AddRestInjections(builder.Configuration);
+    builder.Services.AddUtilitiesInjections();
     #endregion
 
     var app = builder.Build();
