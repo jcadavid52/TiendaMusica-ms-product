@@ -14,6 +14,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
+using TiendaMusica.Utilities;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 {
     [ApiController]
@@ -64,7 +65,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             }
             else
             {
-                response.Result = instruments.Result.Select(instrument => _mapper.Map<InstrumentResponse>(instrument)).ToList();
+                response.Result = _mapper.Map<List<InstrumentResponse>>(instruments.Result);
                 _logger.LogInformation("(endpoint api rest) - Proceso para obtener todos los instrumentos finalizado exitosamente con {Count} instrumentos", response.Result.Count);
             }
 

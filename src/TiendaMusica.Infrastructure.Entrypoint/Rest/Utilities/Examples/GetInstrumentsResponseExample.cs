@@ -9,6 +9,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
     [ExcludeFromCodeCoverage]
     internal class GetInstrumentsResponseExample : IMultipleExamplesProvider<Results<IList<InstrumentResponse>>>
     {
+        private readonly string _dateFormat = "dd-MM-yyyy HH:mm:ss";
         public IEnumerable<SwaggerExample<Results<IList<InstrumentResponse>>>> GetExamples()
         {
             var response = new Results<IList<InstrumentResponse>>();
@@ -16,23 +17,27 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
             var instruments = new List<InstrumentResponse>
             {
                 new InstrumentResponse(
-                    "1",
-                    "Guitar",
-                    "A string instrument",
-                    InstrumentType.Stringed,
-                    199.99m,
-                    10,
-                    DateTime.UtcNow.AddDays(-10)
-                    ),
-                new InstrumentResponse(
-                    "2",
-                    "Piano",
-                    "A keyboard instrument",
-                    InstrumentType.Wind,
-                    499.99m,
-                    5,
-                    DateTime.UtcNow.AddDays(-5)
+                    Id: "1",
+                    Name: "Ejemplo nombre instrumento 1",
+                    Description: "Ejemplo descripción instrumento 1",
+                    Type: InstrumentType.Stringed,
+                    Price: 999.99m,
+                    Stock: 10
                     )
+                {
+                    CreationDateUtc = DateTime.UtcNow.AddDays(-30).ToString(_dateFormat)
+                },
+                new InstrumentResponse(
+                    Id: "2",
+                   Name: "Ejemplo nombre instrumento 2",
+                    Description: "Ejemplo descripción instrumento 2",
+                    Type: InstrumentType.Stringed,
+                    Price: 999.99m,
+                    Stock: 15
+                    )
+                {
+                    CreationDateUtc = DateTime.UtcNow.AddDays(-15).ToString(_dateFormat)
+                }
             };
 
             response.Result = instruments;

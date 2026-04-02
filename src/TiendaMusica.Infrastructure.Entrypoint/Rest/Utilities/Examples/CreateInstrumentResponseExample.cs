@@ -9,19 +9,22 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
     [ExcludeFromCodeCoverage]
     internal class CreateInstrumentResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
     {
+        private readonly string _dateFormat = "dd-MM-yyyy HH:mm:ss";
         public IEnumerable<SwaggerExample<Results<InstrumentResponse>>> GetExamples()
         {
             var response = new Results<InstrumentResponse>();
 
             var instrument = new InstrumentResponse(
-                    "1",
-                    "Guitar",
-                    "A string instrument",
-                    InstrumentType.Stringed,
-                    199.99m,
-                    10,
-                    DateTime.UtcNow.AddDays(-10)
-                    );
+                Id: "1",
+                Name: "Nombre Ejemplo Instrumento Creado",
+                Description: "Descripción ejemplo instrumento creado.",
+                Type: InstrumentType.Stringed,
+                Price: 999.99m,
+                Stock: 10
+            )
+            {
+                CreationDateUtc = DateTime.UtcNow.ToString(_dateFormat)
+            };
 
             response.Result = instrument;
 

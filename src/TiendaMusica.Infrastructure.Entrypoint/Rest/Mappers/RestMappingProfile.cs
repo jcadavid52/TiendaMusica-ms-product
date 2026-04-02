@@ -1,17 +1,20 @@
 ﻿using AutoMapper;
+using Microsoft.VisualBasic;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers.Resolvers;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
+using TiendaMusica.Utilities;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers
 {
-    internal class RestMappingProfile:Profile
+    public class RestMappingProfile:Profile
     {
         public RestMappingProfile()
         {
             CreateMap<Instrument, InstrumentResponse>()
-            .ForMember(dest => dest.CreationDateUtc, opt => opt.MapFrom<DateTimeToBogotaResolver>());
+             .ForMember(dest => dest.CreationDateUtc, opt => opt.MapFrom<DateTimeToBogotaResolver>());
             CreateMap<InstrumentRequest, CreateInstrumentCommand>();
         }
     }

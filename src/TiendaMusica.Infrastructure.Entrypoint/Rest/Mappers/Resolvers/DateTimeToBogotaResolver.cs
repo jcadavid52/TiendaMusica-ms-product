@@ -5,7 +5,7 @@ using TiendaMusica.Utilities;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers.Resolvers
 {
-    internal class DateTimeToBogotaResolver : IValueResolver<Instrument, InstrumentResponse, DateTime>
+    public class DateTimeToBogotaResolver : IValueResolver<Instrument, InstrumentResponse, string>
     {
         private readonly ITools _tools;
 
@@ -14,9 +14,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers.Resolvers
             _tools = tools;
         }
 
-        public DateTime Resolve(Instrument source, InstrumentResponse destination, DateTime destMember, ResolutionContext context)
+        public string Resolve(Instrument source, InstrumentResponse destination, string destMember, ResolutionContext context)
         {
-            return _tools.DateTimeUtcToBogota(source.CreationDateUtc);
+            return _tools.DateTimeUtcToBogotaAsString(source.CreationDateUtc);
         }
     }
 }

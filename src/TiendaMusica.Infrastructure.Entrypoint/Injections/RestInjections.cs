@@ -7,6 +7,8 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers;
+using TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers.Resolvers;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
 
@@ -24,7 +26,11 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             });
 
             var assembly = Assembly.GetExecutingAssembly();
-            services.AddAutoMapper(cfg => { }, assembly);
+            services.AddTransient<DateTimeToBogotaResolver>();
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<RestMappingProfile>();
+            }, typeof(RestMappingProfile).Assembly);
             services.AddHealthChecks();
             AddSwaggerInjections(services);
             services.AddScoped<IRestTools, RestTools>();

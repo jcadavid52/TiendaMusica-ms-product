@@ -89,7 +89,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
                 throw new ArgumentNullException("La descripción es requerida.");
             }
 
-            Console.Write("Tipoa (Wind | Stringed | Keyboard)");
+            Console.Write("Tipo (Wind | Stringed | Keyboard | Percussion)");
             string? type = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(type))

@@ -8,6 +8,7 @@ using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Commands;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
+using TiendaMusica.Utilities;
 
 namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 {
@@ -17,16 +18,19 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         private readonly Mock<IInstrumentUseCase> _instrumentUseCaseMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly InstrumentsCommand _instrumentsCommand;
+        private readonly Mock<ITools> _toolsMock;
 
         public InstrumentsCommand_UTest()
         {
             _loggerMock = new Mock<ILogger<InstrumentsCommand>>();
             _instrumentUseCaseMock = new Mock<IInstrumentUseCase>();
             _mapperMock = new Mock<IMapper>();
+            _toolsMock = new Mock<ITools>();
             _instrumentsCommand = new InstrumentsCommand(
                 _instrumentUseCaseMock.Object,
                 _mapperMock.Object,
-                _loggerMock.Object
+                _loggerMock.Object,
+                _toolsMock.Object
                 );
         }
 

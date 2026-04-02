@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
+using TiendaMusica.Utilities;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
 {
@@ -11,16 +12,19 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
         private readonly IInstrumentUseCase _instrumentUseCase;
         private readonly IMapper _mapper;
         private readonly ILogger<InstrumentsCommand> _logger;
+        private readonly ITools _tools;
 
         public InstrumentsCommand(
             IInstrumentUseCase instrumentUseCase,
             IMapper mapper,
-            ILogger<InstrumentsCommand> logger
+            ILogger<InstrumentsCommand> logger,
+            ITools tools
             )
         {
             _instrumentUseCase = instrumentUseCase;
             _mapper = mapper;
             _logger = logger;
+            _tools = tools;
         }
 
         public async Task GetAllAsync(GetAllInstrumentQuery? query = null)
@@ -51,7 +55,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                     Console.ForegroundColor = ConsoleColor.Green;
                     instrumentsResult.Result.ToList().ForEach(instrument =>
                     {
-                        Console.WriteLine($"Id: {instrument.Id}, Name: {instrument.Name}, Type: {instrument.Type}");
+                        Console.WriteLine($"Id: {instrument.Id}, Name: {instrument.Name}, CreationDate: {_tools.DateTimeUtcToBogotaAsString(instrument.CreationDateUtc)}");
                     });
                     Console.ResetColor();
                     Console.WriteLine("--------------------------------------------");
@@ -93,7 +97,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"Id: {instrumentCreateResult.Result.Id}, Name: {instrumentCreateResult.Result.Name}, Type: {instrumentCreateResult.Result.Type}");
+                    Console.WriteLine($"Id: {instrumentCreateResult.Result.Id}, Name: {instrumentCreateResult.Result.Name}, Type: {instrumentCreateResult.Result.Type},CreationDate: {_tools.DateTimeUtcToBogotaAsString(instrumentCreateResult.Result.CreationDateUtc)}");
                     Console.ResetColor();
                     _logger.LogInformation("(Entrypoint CLI) - Proceso para crear un nuevo instrumento finalizado exitosamente con el ID: {InstrumentId}", instrumentCreateResult.Result.Id);
                 }

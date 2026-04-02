@@ -59,8 +59,8 @@ try
     builder.Services.AddDomainInjections();
     builder.Services.AddApplicationInjections();
     builder.Services.AddOutpointAdapterInjections(builder.Configuration, builder.Environment.EnvironmentName);
-    builder.Services.AddRestInjections(builder.Configuration);
     builder.Services.AddUtilitiesInjections();
+    builder.Services.AddRestInjections(builder.Configuration);
     #endregion
 
     var app = builder.Build();
