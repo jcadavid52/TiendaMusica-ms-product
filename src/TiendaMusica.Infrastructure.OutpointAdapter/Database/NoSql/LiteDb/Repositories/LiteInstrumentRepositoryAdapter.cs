@@ -68,6 +68,15 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             return new Results<Instrument?> { Result = instrument };
         }
 
+        public async Task<Results<Instrument?>> GetByIdAsync(string id)
+        {
+            var collection = _context.InstrumentsCollection;
+            var document = collection.FindOne(instrument => instrument.Id == id);
+            var instrument = _mapper.Map<Instrument>(document);
+
+            return new Results<Instrument?> { Result = instrument };
+        }
+
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
             var document = await Task.Run(() =>

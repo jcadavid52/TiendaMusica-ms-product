@@ -8,19 +8,11 @@ using TiendaMusica.Domain.Models;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Mappers;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
 
 namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories
 {
-    public class InstrumentDocumentProfile : Profile
-    {
-        public InstrumentDocumentProfile()
-        {
-            CreateMap<Instrument, InstrumentDocument>();
-            CreateMap<InstrumentDocument, Instrument>();
-        }
-    }
-
     public class LiteInstrumentRepositoryAdapter_UTest : IDisposable
     {
         private readonly IMapper _mapper;
@@ -31,7 +23,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-            services.AddAutoMapper(cfg => cfg.AddProfile<InstrumentDocumentProfile>());
+            services.AddAutoMapper(cfg => cfg.AddProfile<LiteDBMappingProfile>());
             var serviceProvider = services.BuildServiceProvider();
             _mapper = serviceProvider.GetRequiredService<IMapper>();
 
@@ -95,6 +87,36 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
         {
             // Act
             var result = await _adapter.GetByNameAsync("NonExistentInstrument");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.Null(result.Result);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnInstrument_WhenFound()
+        {
+            // Arrange
+            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var createdResult = await _adapter.CreateAsync(instrument);
+
+            // Act
+            var result = await _adapter.GetByIdAsync(createdResult.Result.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Result);
+            Assert.Equal(createdResult.Result.Id, result.Result.Id);
+            Assert.Equal("Guitarra Eléctrica", result.Result.Name);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
+        {
+            // Act
+            var result = await _adapter.GetByIdAsync("non-existent-id");
 
             // Assert
             Assert.NotNull(result);

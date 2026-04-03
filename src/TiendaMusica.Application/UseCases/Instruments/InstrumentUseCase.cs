@@ -82,6 +82,29 @@ namespace TiendaMusica.Application.UseCases.Instruments
             _logger.LogInformation("Retornando todos los instrumentos exitosamente con {Count} instrumentos desde el caso de uso", resultInstruments.Result.Count);
             return new Results<IList<Instrument>> { Result = resultInstruments.Result };
         }
+
+        public async Task<Results<Instrument?>> GetByIdAsync(string id)
+        {
+            _logger.LogInformation("Inicialización Obtención de instrumento por ID desde el caso de uso con ID: {InstrumentId}", id);
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                _logger.LogWarning("Error validación ID: ID está vacío");
+                return new Results<Instrument?>().AddError(ErrorCode.VALIDATION_ERROR, "El ID del instrumento no puede estar vacío");
+            }
+
+            var result = await _instrumentsRepositoryPorts.GetByIdAsync(id);
+
+            if (result.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores llamando al repositorio para obtener instrumento por ID:{Errors}", result.Errors);
+                return new Results<Instrument?>().AddErrors(result.Errors);
+            }
+
+            _logger.LogInformation("Retornando instrumento exitosamente desde el caso de uso con ID: {InstrumentId}", id);
+            return result;
+        }
+
         public async Task<Results<Instrument>> CreateAsync(CreateInstrumentCommand instrumentCommand)
         {
             _logger.LogInformation("Inicialización creación instrumento desde el caso de uso");

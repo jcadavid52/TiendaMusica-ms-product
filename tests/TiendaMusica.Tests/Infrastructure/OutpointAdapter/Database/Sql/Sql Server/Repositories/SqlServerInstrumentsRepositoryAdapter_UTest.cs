@@ -120,6 +120,36 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         }
 
         [Fact]
+        public async Task GetByIdAsync_ShouldReturnInstrument_WhenFound()
+        {
+            // Arrange
+            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var createdResult = await _adapter.CreateAsync(instrument);
+
+            // Act
+            var result = await _adapter.GetByIdAsync(createdResult.Result.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Result);
+            Assert.Equal(createdResult.Result.Id, result.Result.Id);
+            Assert.Equal("Guitarra Eléctrica", result.Result.Name);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
+        {
+            // Act
+            var result = await _adapter.GetByIdAsync("non-existent-id");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.Null(result.Result);
+        }
+
+        [Fact]
         public async Task GetStockByType_ShouldReturnTotalStock_WhenInstrumentsExist()
         {
             // Arrange

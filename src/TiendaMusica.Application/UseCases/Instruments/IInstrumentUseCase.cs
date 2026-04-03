@@ -7,6 +7,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
     public interface IInstrumentUseCase
     {
         Task<Results<IList<Instrument>>> GetAllAsync(GetAllInstrumentQuery? query = null);
+        Task<Results<Instrument?>> GetByIdAsync(string id);
         Task<Results<Instrument>> CreateAsync(CreateInstrumentCommand instrument);
     }
 }

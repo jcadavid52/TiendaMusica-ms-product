@@ -4,6 +4,7 @@
     {
         SERVER_ERROR,
         CONFLICT_ERROR,
-        VALIDATION_ERROR
+        VALIDATION_ERROR,
+        NOT_FOUND
     }
 }

@@ -72,6 +72,60 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
             }
         }
 
+        public async Task GetByIdAsync(string id)
+        {
+            try
+            {
+                _logger.LogInformation("(Entrypoint CLI) - Iniciando proceso para obtener instrumento por ID: {InstrumentId}", id);
+
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error: El ID del instrumento no puede estar vacío");
+                    Console.ResetColor();
+                    _logger.LogWarning("(Entrypoint CLI) - ID vacío proporcionado");
+                    return;
+                }
+
+                var instrumentResult = await _instrumentUseCase.GetByIdAsync(id);
+
+                if (instrumentResult.HasErrors)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    instrumentResult.Errors.ForEach(error =>
+                    {
+                        Console.WriteLine($"Error Code: {error.ErrorCode}, Message: {error.Message}");
+                    });
+
+                    Console.ResetColor();
+                    _logger.LogWarning("(Entrypoint CLI) - Se encontraron errores al obtener el instrumento por ID llamando al caso de uso: {Errors}", instrumentResult.Errors);
+                }
+                else if (instrumentResult.Result == null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Instrumento no encontrado con ID: {id}");
+                    Console.ResetColor();
+                    _logger.LogWarning("(Entrypoint CLI) - Instrumento no encontrado con ID: {InstrumentId}", id);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    var instrument = instrumentResult.Result;
+                    Console.WriteLine($"Id: {instrument.Id}, Name: {instrument.Name}, Type: {instrument.Type}, CreationDate: {_tools.DateTimeUtcToBogotaAsString(instrument.CreationDateUtc)}");
+                    Console.ResetColor();
+                    _logger.LogInformation("(Entrypoint CLI) - Proceso para obtener instrumento por ID finalizado exitosamente con ID: {InstrumentId}", id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Ocurrió una excepción no controlada: {ex.Message}");
+                Console.ResetColor();
+                _logger.LogError(ex, "Excepción no controlada: {Message}", ex.Message);
+            }
+        }
+
         public async Task CreateAsync(InstrumentCreateCliRequest command)
         {
             try

@@ -259,5 +259,81 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(
                 It.Is<CreateInstrumentCommand>(cmd => cmd.Name == "Guitarra Eléctrica")), Times.Once);
         }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnInstrument_WhenInstrumentExists()
+        {
+            // Arrange
+            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new Results<Instrument?>
+                {
+                    Result = instrument
+                });
+
+            // Act
+            await _instrumentsCommand.GetByIdAsync(instrument.Id);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.GetByIdAsync(
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
+        {
+            // Arrange
+            var instrumentId = "test-id";
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new Results<Instrument?>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.GetByIdAsync(instrumentId);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.GetByIdAsync(It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldHandleNotFound_WhenInstrumentNotExists()
+        {
+            // Arrange
+            var instrumentId = "non-existent-id";
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new Results<Instrument?>
+                {
+                    Result = null,
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.CONFLICT_ERROR, "Instrumento no encontrado")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.GetByIdAsync(instrumentId);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.GetByIdAsync(
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldHandleEmptyId_WhenIdIsEmpty()
+        {
+            // Act
+            await _instrumentsCommand.GetByIdAsync("");
+
+            // Assert - The method should return early without calling the use case
+            _instrumentUseCaseMock.Verify(useCase => useCase.GetByIdAsync(It.IsAny<string>()), Times.Never);
+        }
     }
 }

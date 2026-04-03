@@ -74,6 +74,42 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             return StatusCode(statusCode, response);
         }
 
+        [HttpGet("{id}")]
+        [EnableRateLimiting("read")]
+        [SwaggerOperation(Summary = "Permite obtener un instrumento por ID", Description = "Permite obtener un instrumento específico del catálogo por su identificador.")]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GetInstrumentsResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status404NotFound, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] string id)
+        {
+            _logger.LogInformation("(endpoint api rest) - Iniciando proceso para obtener instrumento por ID: {InstrumentId}", id);
+            var response = new Results<InstrumentResponse>();
+            var instrument = await _instrumentUseCase.GetByIdAsync(id);
+
+            if (instrument.HasErrors)
+            {
+                response.AddErrors(instrument.Errors);
+                _logger.LogWarning("(endpoint api rest) - Se encontraron errores al obtener el instrumento por ID llamando al caso de uso: {Errors}", instrument.Errors);
+            }
+            else if (instrument.Result == null)
+            {
+                response.AddError(ErrorCode.NOT_FOUND, $"Instrumento no encontrado con ID: {id}");
+                _logger.LogWarning("(endpoint api rest) - Instrumento no encontrado con ID: {InstrumentId}", id);
+            }
+            else
+            {
+                response.Result = _mapper.Map<InstrumentResponse>(instrument.Result);
+                _logger.LogInformation("(endpoint api rest) - Proceso para obtener instrumento por ID finalizado exitosamente con ID: {InstrumentId}", id);
+            }
+
+            int statusCode = _restTools.GetHttpStatusCode(response.Errors);
+            _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de obtener instrumento por ID", statusCode);
+            return StatusCode(statusCode, response);
+        }
+
         [HttpPost]
         [EnableRateLimiting("write")]
         [SwaggerOperation(Summary = "Permite crear un instrumento", Description = "Permite crear un instrumento que existen para el catálogo con los tipos Stringed - Wind - keyboard.")]

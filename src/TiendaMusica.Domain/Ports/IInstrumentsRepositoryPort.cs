@@ -13,6 +13,7 @@ namespace TiendaMusica.Domain.Ports
             int? skip = null,
             int? take = null
             );
+        Task<Results<Instrument?>> GetByIdAsync(string id);
         Task<Results<Instrument?>> GetByNameAsync(string name);
         Task<Results<int>> GetStockByType(InstrumentType type);
         Task<Results<Instrument>> CreateAsync(Instrument instrument);

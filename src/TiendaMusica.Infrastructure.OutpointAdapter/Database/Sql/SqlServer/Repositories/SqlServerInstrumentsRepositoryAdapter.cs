@@ -85,6 +85,16 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             });
         }
 
+        public async Task<Results<Instrument?>> GetByIdAsync(string id)
+        {
+            return await _circuitBreakerPolicy.ExecuteAsync(async () =>
+            {
+                var instrument = await _context.Instruments
+                    .FirstOrDefaultAsync(i => i.Id == id);
+                return new Results<Instrument?> { Result = instrument };
+            });
+        }
+
         public async Task<Results<int>> GetStockByType(InstrumentType type)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>

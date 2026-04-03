@@ -199,9 +199,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             var url = "/v1/instrument";
             int codeExpected = 201;
 
-            var newInstrument = new InstrumentRequest("Guitarra Eléctrica",
+            var newInstrument = new InstrumentRequest("Batería Eléctrica",
                 "Descripción test",
-                InstrumentType.Stringed,
+                InstrumentType.Percussion,
                 1500.00m,
                 1
                 );
@@ -284,6 +284,98 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             }).CreateClient();
 
             var response = await errorClient.PostAsync(url, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.Null(responseObject.Result);
+            Assert.False(responseObject.IsSuccess);
+            Assert.True(responseObject.Errors.Any());
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenInstrumentExists_ShouldResturnSuccessResultStatus200()
+        {
+            // Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+            string url = "/v1/instrument?sortDirection=Desc";
+            var response = await _client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var allInstruments = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
+
+            var instrumentId = allInstruments?.Result?.FirstOrDefault()?.Id;
+            url = $"/v1/instrument/{instrumentId}";
+            int codeExpected = 200;
+
+            // Act
+            response = await _client.GetAsync(url);
+            responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.NotNull(responseObject.Result);
+            Assert.True(responseObject.IsSuccess);
+            Assert.Equal(instruments[0].Name, responseObject.Result.Name);
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenInstrumentNotExists_ShouldResturnFailureResultStatus404()
+        {
+            // Arrange
+            string url = $"/v1/instrument/non-existent-id";
+            int codeExpected = 404;
+
+            // Act
+            var response = await _client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.Null(responseObject.Result);
+            Assert.False(responseObject.IsSuccess);
+            Assert.True(responseObject.Errors.Any());
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenUseCaseReturnsErrors_ShouldReturnsFailureResultStatus500()
+        {
+            // Arrange
+            string url = $"/v1/instrument/test-id";
+            int codeExpected = 500;
+
+            var errorClient = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IInstrumentUseCase));
+                    if (descriptor != null) services.Remove(descriptor);
+
+                    var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
+                    mockInstrumentUsecase.Setup(m => m.GetByIdAsync(It.IsAny<string>()))
+                                      .ReturnsAsync(new Results<Instrument?>
+                                      {
+                                          Errors = new List<TiendaMusicaError>
+                                          {
+                                              new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+                                          },
+                                      });
+
+                    services.AddScoped(_ => mockInstrumentUsecase.Object);
+                });
+            }).CreateClient();
+
+            // Act
+            var response = await errorClient.GetAsync(url);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
 

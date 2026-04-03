@@ -4,7 +4,7 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Document
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Mappers
 {
-    internal class LiteDBMappingProfile : Profile
+    public class LiteDBMappingProfile : Profile
     {
         public LiteDBMappingProfile()
         {

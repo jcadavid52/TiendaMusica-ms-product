@@ -416,5 +416,73 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             await Assert.ThrowsAsync<Exception>(() => useCase.CreateAsync(createCommand));
         }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnInstrument_WhenInstrumentExists()
+        {
+            // Arrange
+            var expectedInstrument = Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed, 500, 10).Result;
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(expectedInstrument.Id))
+                .ReturnsAsync(new Results<Instrument?> { Result = expectedInstrument });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.GetByIdAsync(expectedInstrument.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccess);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Result);
+            Assert.Equal(expectedInstrument.Id, result.Result.Id);
+            Assert.Equal(expectedInstrument.Name, result.Result.Name);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnError_WhenIdIsEmpty()
+        {
+            // Arrange
+            var id = "";
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.GetByIdAsync(id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.True(result.HasErrors);
+            Assert.Null(result.Result);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
+        {
+            // Arrange
+            var id = "test-id";
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync("test-id"))
+                .ReturnsAsync(new Results<Instrument?>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
+                    }
+                });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.GetByIdAsync(id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.True(result.HasErrors);
+            Assert.Null(result.Result);
+        }
     }
 }
