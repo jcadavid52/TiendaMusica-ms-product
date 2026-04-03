@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -169,7 +170,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument> { Result = null });
+                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
@@ -248,7 +249,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
+                .ReturnsAsync(new Results<Instrument?> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
 
             var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
             // Act
@@ -272,7 +273,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument>
+                .ReturnsAsync(new Results<Instrument?>
                 {
                     Errors = new List<TiendaMusicaError>
                     {
@@ -303,7 +304,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument> { Result = null });
+                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
@@ -337,7 +338,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument> { Result = null });
+                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .Throws(new ArgumentException("Exception forzada en el UseCase"));
@@ -352,9 +353,68 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         }
 
         [Fact]
-        public async Task Prueba()
+        public async Task CreateAsync_ShouldCreateInstrument_WhenPublishEventSuccess()
         {
+            int currentStock = 10;
+            var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
 
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
+                .ReturnsAsync(new Results<int> { Result = currentStock });
+
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
+                .Returns(new Results<bool> { Result = true });
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
+               .ReturnsAsync(new Results<Instrument?> { Result = null });
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
+                .ReturnsAsync(new Results<Instrument>
+                {
+                    Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result
+                });
+
+            _messagePublisherMock.Setup(publisher => publisher.PublishAsync(It.IsAny<InstrumentCreatedEvent>())).Returns(Task.CompletedTask);
+
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            var result = await useCase.CreateAsync(createCommand);
+
+             Assert.NotNull(result);
+             Assert.True(result.IsSuccess);
+             Assert.False(result.HasErrors);
+            _messagePublisherMock.Verify(
+                publisher => publisher.PublishAsync(It.IsAny<InstrumentCreatedEvent>()),
+                Times.Once());
+        }
+
+        [Fact]
+        public async Task CreateAsync_ShouldThrowsException_WhenPublishEventFailure()
+        {
+            int currentStock = 10;
+            var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
+                .ReturnsAsync(new Results<int> { Result = currentStock });
+
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
+                .Returns(new Results<bool> { Result = true });
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
+               .ReturnsAsync(new Results<Instrument?> { Result = null });
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
+                .ReturnsAsync(new Results<Instrument>
+                {
+                    Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result
+                });
+
+            _messagePublisherMock.Setup(publisher => publisher.PublishAsync(It.IsAny<InstrumentCreatedEvent>()))
+                .ThrowsAsync(new Exception("Error al publicar el evento de instrumento creado"));
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            await Assert.ThrowsAsync<Exception>(() => useCase.CreateAsync(createCommand));
         }
     }
 }

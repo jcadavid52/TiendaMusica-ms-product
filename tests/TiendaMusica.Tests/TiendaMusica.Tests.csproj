@@ -27,7 +27,6 @@
 
 	<ItemGroup>
 		<Folder Include="Infrastructure\OutpointAdapter\" />
-		<Folder Include="TestResults\" />
 	</ItemGroup>
 
 	<ItemGroup>

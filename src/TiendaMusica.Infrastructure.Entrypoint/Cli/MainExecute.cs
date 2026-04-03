@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Commands;
@@ -8,6 +9,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Cli
 {
+    [ExcludeFromCodeCoverage]
     public static class MainExecute
     {
         public static async Task ExecuteAsync(string[] args, IServiceProvider serviceProvider)
