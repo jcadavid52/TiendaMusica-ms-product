@@ -212,11 +212,12 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         {
             // Arrange
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            int currenStock = 10;
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
+                .ReturnsAsync(new Results<int> { Result = currenStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currenStock, createCommand.Type))
                 .Returns(new Results<bool>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -239,11 +240,11 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         {
             // Arrange
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-
+            int currentStock = 10;
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
+                .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
@@ -263,11 +264,11 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         {
             // Arrange
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-
+            int currentSock = 0;
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
+                .ReturnsAsync(new Results<int> { Result = currentSock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentSock, createCommand.Type))
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
@@ -293,11 +294,12 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         {
             // Arrange
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            int currentStock = 10;
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
+                .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
@@ -326,11 +328,12 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         {
             // Arrange
             var createCommand = new CreateInstrumentCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            int currentStock = 10;
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
+                .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
+            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
                 .Returns(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
@@ -346,6 +349,12 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.True(result.HasErrors);
+        }
+
+        [Fact]
+        public async Task Prueba()
+        {
+
         }
     }
 }

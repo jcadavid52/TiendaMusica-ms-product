@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
@@ -38,6 +39,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             _logger = logger;
         }
         [HttpGet]
+        [EnableRateLimiting("read")]
         [SwaggerOperation(Summary = "Permite listar instrumentos", Description = "Permite obtener todos los instrumentos que existen en el catálogo.")]
         [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GetInstrumentsResponseExample))]
         [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
@@ -73,6 +75,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("write")]
         [SwaggerOperation(Summary = "Permite crear un instrumento", Description = "Permite crear un instrumento que existen para el catálogo con los tipos Stringed - Wind - keyboard.")]
         [SwaggerResponseExample(StatusCodes.Status201Created, typeof(CreateInstrumentResponseExample))]
         [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(ErrorBadRequestInstrumentResponseExample))]

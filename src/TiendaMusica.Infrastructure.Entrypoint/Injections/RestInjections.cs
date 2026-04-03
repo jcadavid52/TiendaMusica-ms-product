@@ -1,11 +1,13 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Validators;
 
@@ -13,6 +15,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 {
     public static class RestInjections
     {
+        private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
         public static IServiceCollection AddRestInjections(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers().AddJsonOptions(options =>
@@ -22,12 +25,12 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
-            var assembly = Assembly.GetExecutingAssembly();
             services.AddAutoMapper(cfg => { }, assembly);
             services.AddHealthChecks();
             AddSwaggerInjections(services);
             services.AddScoped<IRestTools, RestTools>();
             FluentValidationInjections(services);
+            AddRateLimitingInjections(services);
 
             return services;
         }
@@ -37,9 +40,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
             services.AddValidatorsFromAssemblyContaining<InstrumentRequestValidator>();
         }
 
-        public static IServiceCollection AddSwaggerInjections(this IServiceCollection services)
+        private static IServiceCollection AddSwaggerInjections(this IServiceCollection services)
         {
-            var assembly = Assembly.Load("TiendaMusica.Infrastructure.Entrypoint");
             services.AddSwaggerExamplesFromAssemblies(assembly);
 
             services.AddEndpointsApiExplorer();
@@ -67,6 +69,77 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Injections
 
             return services;
         }
+
+        private static IServiceCollection AddRateLimitingInjections(this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    context.HttpContext.Response.ContentType = "application/json";
+
+                    var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
+                        ? retryAfter.TotalSeconds
+                        : 60;
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(new
+                    {
+                        error = "Demasiadas solicitudes. Por favor, intente más tarde.",
+                        retryAfter = retryAfterSeconds
+                    }, cancellationToken);
+                };
+
+                options.AddPolicy("fixed", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 10
+                        }));
+
+                options.AddPolicy("sliding", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = 50,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 5,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 5
+                        }));
+
+                options.AddPolicy("write", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 10,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 2
+                        }));
+
+                options.AddPolicy("read", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 20
+                        }));
+            });
+
+            return services;
+        }
+
         public static void UseSwaggerExtension(this IApplicationBuilder builder, string env)
         {
             if (string.Equals("local", env, StringComparison.InvariantCultureIgnoreCase) ||

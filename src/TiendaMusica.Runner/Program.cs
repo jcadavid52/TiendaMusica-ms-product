@@ -67,6 +67,7 @@ try
     var env = builder.Environment.EnvironmentName;
     app.UseMiddleware<ExceptionMiddleware>();
     app.UseSwaggerExtension(env);
+    app.UseRateLimiter();
     app.MapControllers();
     app.Run();
 }
