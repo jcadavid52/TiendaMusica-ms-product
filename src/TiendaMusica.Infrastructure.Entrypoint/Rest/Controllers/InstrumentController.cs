@@ -156,5 +156,38 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de creación de instrumento", statusCode);
             return StatusCode(statusCode, response);
         }
+
+        [HttpDelete("delete-multiple")]
+        [EnableRateLimiting("write")]
+        [SwaggerOperation(Summary = "Permite eliminar múltiples instrumentos", Description = "Permite eliminar varios instrumentos del catálogo proporcionando una lista de IDs.")]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(DeleteMultipleInstrumentsResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(ErrorBadRequestInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [ProducesResponseType(typeof(Results<int>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteMultipleAsync([FromBody] DeleteMultipleInstrumentsRequest request)
+        {
+            _logger.LogInformation("(endpoint api rest) - Iniciando proceso para eliminar múltiples instrumentos: {InstrumentIds}", string.Join(", ", request.InstrumentIds));
+            var response = new Results<int>();
+
+            var command = _mapper.Map<DeleteMultipleInstrumentsCommand>(request);
+            var deleteResult = await _instrumentUseCase.DeleteMultipleAsync(command);
+
+            if (deleteResult.HasErrors)
+            {
+                response.AddErrors(deleteResult.Errors);
+                _logger.LogWarning("(endpoint api rest) - Se encontraron errores al eliminar múltiples instrumentos llamando al caso de uso: {Errors}", deleteResult.Errors);
+            }
+            else
+            {
+                response.Result = deleteResult.Result;
+                _logger.LogInformation("(endpoint api rest) - Proceso para eliminar múltiples instrumentos finalizado exitosamente. {Count} instrumentos eliminados", response.Result);
+            }
+
+            int statusCode = _restTools.GetHttpStatusCode(response.Errors);
+            _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de eliminación de múltiples instrumentos", statusCode);
+            return StatusCode(statusCode, response);
+        }
     }
 }

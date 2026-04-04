@@ -106,5 +106,31 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
 
             return new Results<int> { Result = currentStock };
         }
+
+        public async Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds)
+        {
+
+            var results = new Results<int>();
+            var collection = _context.InstrumentsCollection;
+            var count = 0;
+            var toDelete = collection.Find(instrument => instrumentIds.Contains(instrument.Id)).ToList();
+
+            if (toDelete.Count != instrumentIds.Distinct().Count())
+            {
+                var idsFounds = toDelete.Select(p => p.Id);
+                var idsMissing = instrumentIds.Except(idsFounds);
+                results.Result = count;
+                return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
+            }
+
+            foreach (var id in instrumentIds)
+            {
+                var deleted = collection.DeleteMany(instrument => instrument.Id == id);
+                count += deleted;
+            }
+
+            results.Result = count;
+            return results;
+        }
     }
 }

@@ -4,8 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Commands;
-using TiendaMusica.Infrastructure.Entrypoint.Cli.Constants;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
+using TiendaMusica.Infrastructure.Entrypoint.Cli.Parameters;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Cli
 {

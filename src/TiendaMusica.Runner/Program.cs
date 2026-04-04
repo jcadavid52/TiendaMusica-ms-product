@@ -2,7 +2,7 @@ using Serilog;
 using TiendaMusica.Application.Injections;
 using TiendaMusica.Domain.Injections;
 using TiendaMusica.Infrastructure.Entrypoint.Cli;
-using TiendaMusica.Infrastructure.Entrypoint.Cli.Constants;
+using TiendaMusica.Infrastructure.Entrypoint.Cli.Parameters;
 using TiendaMusica.Infrastructure.Entrypoint.Injections;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Middleware;
 using TiendaMusica.Infrastructure.OutpointAdapter.Injections;

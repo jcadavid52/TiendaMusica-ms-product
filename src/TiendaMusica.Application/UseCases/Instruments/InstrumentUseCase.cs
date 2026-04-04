@@ -174,5 +174,36 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 return results.AddError(ErrorCode.VALIDATION_ERROR, $"Error Domain: {ex.Message}");
             }
         }
+
+        public async Task<Results<int>> DeleteMultipleAsync(DeleteMultipleInstrumentsCommand command)
+        {
+            _logger.LogInformation("Inicialización eliminación masiva de instrumentos desde el caso de uso con {Count} IDs", command.InstrumentIds.Count);
+            var results = new Results<int>();
+
+            if (command.InstrumentIds == null || command.InstrumentIds.Count == 0)
+            {
+                _logger.LogWarning("Error validación: lista de IDs vacía o null");
+                return results.AddError(ErrorCode.VALIDATION_ERROR, "La lista de IDs no puede estar vacía");
+            }
+
+            var invalidIds = command.InstrumentIds.Where(id => string.IsNullOrWhiteSpace(id)).ToList();
+            if (invalidIds.Any())
+            {
+                _logger.LogWarning("Error validación: se encontraron IDs vacíos o inválidos");
+                return results.AddError(ErrorCode.VALIDATION_ERROR, "Se encontraron IDs vacíos o inválidos");
+            }
+            
+            var result = await _instrumentsRepositoryPorts.DeleteMultipleAsync(command.InstrumentIds);
+
+            if (result.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores llamando al repositorio para eliminar múltiples instrumentos: {Errors}", result.Errors);
+                return results.AddErrors(result.Errors);
+            }
+
+            _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", result.Result);
+            results.Result = result.Result;
+            return results;
+        }
     }
 }

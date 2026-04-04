@@ -17,5 +17,6 @@ namespace TiendaMusica.Domain.Ports
         Task<Results<Instrument?>> GetByNameAsync(string name);
         Task<Results<int>> GetStockByType(InstrumentType type);
         Task<Results<Instrument>> CreateAsync(Instrument instrument);
+        Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds);
     }
 }

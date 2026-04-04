@@ -164,5 +164,56 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                 _logger.LogError(ex, "Excepción no controlada: {Message}", ex.Message);
             }
         }
+
+        public async Task DeleteMultipleAsync(IList<string> instrumentIds)
+        {
+            try
+            {
+                _logger.LogInformation("(Entrypoint CLI) - Iniciando proceso para eliminar múltiples instrumentos: {InstrumentIds}", string.Join(", ", instrumentIds));
+
+                if (instrumentIds == null || instrumentIds.Count == 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error: La lista de IDs no puede estar vacía");
+                    Console.ResetColor();
+                    _logger.LogWarning("(Entrypoint CLI) - Lista de IDs vacía proporcionada");
+                    return;
+                }
+
+                var command = new DeleteMultipleInstrumentsCommand(instrumentIds);
+                var deleteResult = await _instrumentUseCase.DeleteMultipleAsync(command);
+
+                if (deleteResult.HasErrors)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    deleteResult.Errors.ForEach(error =>
+                    {
+                        Console.WriteLine($"Error Code: {error.ErrorCode}, Message: {error.Message}");
+                    });
+
+                    Console.ResetColor();
+                    _logger.LogWarning("(Entrypoint CLI) - Se encontraron errores al eliminar múltiples instrumentos llamando al caso de uso: {Errors}", deleteResult.Errors);
+                }
+                else
+                {
+                    Console.WriteLine("--------------------------------------------");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Eliminación masiva completada exitosamente");
+                    Console.WriteLine($"Total de instrumentos eliminados: {deleteResult.Result}");
+                    Console.ResetColor();
+                    Console.WriteLine("--------------------------------------------");
+
+                    _logger.LogInformation("(Entrypoint CLI) - Proceso para eliminar múltiples instrumentos finalizado exitosamente. {Count} instrumentos eliminados", deleteResult.Result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Ocurrió una excepción no controlada: {ex.Message}");
+                Console.ResetColor();
+                _logger.LogError(ex, "Excepción no controlada: {Message}", ex.Message);
+            }
+        }
     }
 }
