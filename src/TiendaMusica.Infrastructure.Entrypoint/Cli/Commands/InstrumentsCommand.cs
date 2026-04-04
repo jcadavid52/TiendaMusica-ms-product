@@ -49,9 +49,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                 }
                 else
                 {
-                    Console.WriteLine("--------------------------------------------");
-                    Console.WriteLine("Catálogo instrumentos musicales");
-                    Console.WriteLine("--------------------------------------------");
+                    Console.WriteLine("╔═══════════════════════════════════════════════════════╗");
+                    Console.WriteLine("║          Catálogo instrumentos musicales              ║");
+                    Console.WriteLine("╚═══════════════════════════════════════════════════════╝");
                     Console.ForegroundColor = ConsoleColor.Green;
                     instrumentsResult.Result.ToList().ForEach(instrument =>
                     {
