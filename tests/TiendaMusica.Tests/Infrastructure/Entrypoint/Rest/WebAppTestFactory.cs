@@ -67,12 +67,12 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             {
                 var docs = ScopedDatabaseLiteDb();
 
-                return docs.Select(d => new InstrumentCommonInfoDto(d.Name)).ToList();
+                return docs.Select(d => new InstrumentCommonInfoDto(d.Id,d.Name)).ToList();
             }
             else
             {
                 var entities = await ScopedDatabaseSqlServer();
-                return entities.Select(e => new InstrumentCommonInfoDto(e.Name)).ToList();
+                return entities.Select(e => new InstrumentCommonInfoDto(e.Id,e.Name)).ToList();
             }
         }
 
@@ -148,5 +148,5 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         }
     }
 
-    public record InstrumentCommonInfoDto(string Name);
+    public record InstrumentCommonInfoDto(string Id,string Name);
 }

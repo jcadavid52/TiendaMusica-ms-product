@@ -332,8 +332,113 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Act
             await _instrumentsCommand.GetByIdAsync("");
 
-            // Assert - The method should return early without calling the use case
+            // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetByIdAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldDeleteInstruments_WhenUseCaseReturnsSuccess()
+        {
+            // Arrange
+            var idsToDelete = new List<string> { "id1", "id2", "id3" };
+            var deleteCommand = new DeleteMultipleInstrumentsCommand(idsToDelete);
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+                .ReturnsAsync(new Results<int>
+                {
+                    Result = 3
+                });
+
+            // Act
+            await _instrumentsCommand.DeleteMultipleAsync(idsToDelete);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
+                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                    cmd.InstrumentIds.Count == 3 &&
+                    cmd.InstrumentIds[0] == "id1" &&
+                    cmd.InstrumentIds[1] == "id2" &&
+                    cmd.InstrumentIds[2] == "id3"
+                )), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
+        {
+            // Arrange
+            var idsToDelete = new List<string> { "id1", "id2" };
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+                .ReturnsAsync(new Results<int>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.DeleteMultipleAsync(idsToDelete);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldNotCallUseCaseMethod_WhenIdListIsEmpty()
+        {
+            // Arrange
+            var idsToDelete = new List<string>();
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+                .ReturnsAsync(new Results<int>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.VALIDATION_ERROR, "La lista de IDs no puede estar vacía")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.DeleteMultipleAsync(idsToDelete);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
+                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                    cmd.InstrumentIds.Count == 0
+                )), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldHandlePartialFailure_WhenSomeInstrumentsNotFound()
+        {
+            // Arrange
+            var idsToDelete = new List<string> { "id1", "non-existent-id", "id3" };
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+                .ReturnsAsync(new Results<int>
+                {
+                    Result = 2
+                });
+
+            // Act
+            await _instrumentsCommand.DeleteMultipleAsync(idsToDelete);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
+                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                    cmd.InstrumentIds.Count == 3
+                )), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldHandleEmptyList_WhenNoIdsProvided()
+        {
+            // Act
+            await _instrumentsCommand.DeleteMultipleAsync(new List<string>());
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()), Times.Never);
         }
     }
 }

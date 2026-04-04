@@ -301,18 +301,13 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         {
             // Arrange
             var instruments = await _factory.ScopedDatabaseAsync();
-            string url = "/v1/instrument?sortDirection=Desc";
-            var response = await _client.GetAsync(url);
-            var responseString = await response.Content.ReadAsStringAsync();
-            var allInstruments = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(responseString);
 
-            var instrumentId = allInstruments?.Result?.FirstOrDefault()?.Id;
-            url = $"/v1/instrument/{instrumentId}";
+            var url = $"/v1/instrument/{instruments[0].Id}";
             int codeExpected = 200;
 
             // Act
-            response = await _client.GetAsync(url);
-            responseString = await response.Content.ReadAsStringAsync();
+            var response = await _client.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
 
             // Assert
@@ -383,6 +378,123 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             Assert.NotNull(response);
             Assert.NotNull(responseObject);
             Assert.Null(responseObject.Result);
+            Assert.False(responseObject.IsSuccess);
+            Assert.True(responseObject.Errors.Any());
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_WhenInstrumentsExist_ShouldReturnSuccessResultStatus200()
+        {
+            // Arrange
+            var instruments = await _factory.ScopedDatabaseAsync();
+
+            var idsToDelete = new List<string> 
+            {
+                instruments[9].Id,
+                instruments[8].Id,
+                instruments[7].Id
+            };
+
+            var deleteUrl = "/v1/instrument/delete-multiple";
+            var deleteRequest = new DeleteMultipleInstrumentsRequest(idsToDelete);
+            var content = new StringContent(JsonConvert.SerializeObject(deleteRequest), Encoding.UTF8, "application/json");
+            int codeExpected = 200;
+
+            // Act
+            var request = new HttpRequestMessage(HttpMethod.Delete, deleteUrl)
+            {
+                Content = content
+            };
+            var response = await _client.SendAsync(request);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<int>>(responseString);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.True(responseObject.IsSuccess);
+            Assert.Equal(3, responseObject.Result);
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+
+            // Verify deletion
+            var verifyUrl = "/v1/instrument";
+            var verifyResponse = await _client.GetAsync(verifyUrl);
+            var verifyString = await verifyResponse.Content.ReadAsStringAsync();
+            var verifyObject = JsonConvert.DeserializeObject<Results<IList<InstrumentResponse>>>(verifyString);
+            Assert.Equal(7, verifyObject?.Result?.Count);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_WhenEmptyIdList_ShouldReturnFailureResultStatus400()
+        {
+            // Arrange
+            var deleteUrl = "/v1/instrument/delete-multiple";
+            var deleteRequest = new DeleteMultipleInstrumentsRequest(new List<string>());
+            var content = new StringContent(JsonConvert.SerializeObject(deleteRequest), Encoding.UTF8, "application/json");
+            int codeExpected = 400;
+
+            // Act
+            var request = new HttpRequestMessage(HttpMethod.Delete, deleteUrl)
+            {
+                Content = content
+            };
+            var response = await _client.SendAsync(request);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<int>>(responseString);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.False(responseObject.IsSuccess);
+            Assert.True(responseObject.Errors.Any());
+            Assert.Equal(ErrorCode.VALIDATION_ERROR, responseObject.Errors[0].ErrorCode);
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_WhenUseCaseReturnsErrors_ShouldReturnFailureResultStatus500()
+        {
+            // Arrange
+            var deleteUrl = "/v1/instrument/delete-multiple";
+            var deleteRequest = new DeleteMultipleInstrumentsRequest(new List<string> { "id1", "id2" });
+            var content = new StringContent(JsonConvert.SerializeObject(deleteRequest), Encoding.UTF8, "application/json");
+            int codeExpected = 500;
+
+            var errorClient = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IInstrumentUseCase));
+                    if (descriptor != null) services.Remove(descriptor);
+
+                    var mockInstrumentUsecase = new Mock<IInstrumentUseCase>();
+                    mockInstrumentUsecase.Setup(m => m.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+                                      .ReturnsAsync(new Results<int>
+                                      {
+                                          Errors = new List<TiendaMusicaError>
+                                          {
+                                              new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+                                          },
+                                      });
+
+                    services.AddScoped(_ => mockInstrumentUsecase.Object);
+                });
+            }).CreateClient();
+
+            // Act
+            var request = new HttpRequestMessage(HttpMethod.Delete, deleteUrl)
+            {
+                Content = content
+            };
+            var response = await errorClient.SendAsync(request);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<int>>(responseString);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
             Assert.False(responseObject.IsSuccess);
             Assert.True(responseObject.Errors.Any());
             Assert.Equal(codeExpected, (int)response.StatusCode);

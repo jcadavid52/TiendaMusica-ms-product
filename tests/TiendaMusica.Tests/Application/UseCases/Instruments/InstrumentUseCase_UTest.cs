@@ -484,5 +484,90 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             Assert.True(result.HasErrors);
             Assert.Null(result.Result);
         }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldDeleteInstruments_WhenSuccessful()
+        {
+            // Arrange
+            var instrumentIds = new List<string> { "id1", "id2", "id3" };
+            var command = new DeleteMultipleInstrumentsCommand(instrumentIds);
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.DeleteMultipleAsync(instrumentIds))
+                .ReturnsAsync(new Results<int> { Result = 3 });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.DeleteMultipleAsync(command);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccess);
+            Assert.False(result.HasErrors);
+            Assert.Equal(3, result.Result);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldReturnError_WhenIdListIsEmpty()
+        {
+            // Arrange
+            var command = new DeleteMultipleInstrumentsCommand(new List<string>());
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.DeleteMultipleAsync(command);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.True(result.HasErrors);
+            Assert.Equal(ErrorCode.VALIDATION_ERROR, result.Errors[0].ErrorCode);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_ShouldReturnError_WhenIdListContainsEmptyIds()
+        {
+            // Arrange
+            var command = new DeleteMultipleInstrumentsCommand(new List<string> { "id1", "", "id3" });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.DeleteMultipleAsync(command);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.True(result.HasErrors);
+            Assert.Equal(ErrorCode.VALIDATION_ERROR, result.Errors[0].ErrorCode);
+        }
+
+        [Fact]
+        public async Task DeleteMultipleAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
+        {
+            // Arrange
+            var instrumentIds = new List<string> { "id1", "id2" };
+            var command = new DeleteMultipleInstrumentsCommand(instrumentIds);
+
+            _instrumentsRepositoryPortMock.Setup(repo => repo.DeleteMultipleAsync(instrumentIds))
+                .ReturnsAsync(new Results<int>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
+                    }
+                });
+
+            var useCase = new InstrumentUseCase(_instrumentsRepositoryPortMock.Object, _instrumentCreateValidationService.Object, _loggerMock.Object, _messagePublisherMock.Object);
+
+            // Act
+            var result = await useCase.DeleteMultipleAsync(command);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccess);
+            Assert.True(result.HasErrors);
+        }
     }
 }
