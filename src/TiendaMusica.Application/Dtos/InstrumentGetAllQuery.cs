@@ -2,7 +2,7 @@
 
 namespace TiendaMusica.Application.Dtos
 {
-    public record GetAllInstrumentQuery(
+    public record InstrumentGetAllQuery(
         SortDirection SortDirection = SortDirection.Desc,
         string? Search = "",
         int? PageSize = 10,

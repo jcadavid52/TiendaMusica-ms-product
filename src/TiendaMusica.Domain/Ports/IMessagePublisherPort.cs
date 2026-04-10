@@ -1,7 +1,9 @@
+using TiendaMusica.Domain.Models.Result;
+
 namespace TiendaMusica.Domain.Ports
 {
     public interface IMessagePublisherPort
     {
-        Task PublishAsync<T>(T @event) where T : class;
+        Task<Results<bool>> PublishAsync<T>(T @event) where T : class;
     }
 }

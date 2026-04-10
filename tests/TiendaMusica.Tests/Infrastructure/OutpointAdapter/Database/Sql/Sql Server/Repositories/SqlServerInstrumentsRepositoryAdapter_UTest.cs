@@ -46,6 +46,8 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
 
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
+            int expectedChanges = 2;
+            int saveResult = await SaveChangesAsync();
 
             // Act
             var result = await _adapter.GetAllAsync();
@@ -54,7 +56,8 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
             Assert.NotNull(result.Result);
-            Assert.Equal(2, result.Result.Count);
+            Assert.Equal(expectedChanges, result.Result.Count);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -62,9 +65,11 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         {
             // Arrange
             var instrument = Instrument.Create("Nueva Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            int expectedChanges = 1;
 
             // Act
             var result = await _adapter.CreateAsync(instrument);
+            int saveResult = await SaveChangesAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -73,6 +78,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.Equal("Nueva Guitarra", result.Result.Name);
             Assert.NotEmpty(result.Result.Id);
             Assert.NotEqual(default, result.Result.CreationDateUtc);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -80,15 +86,18 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         {
             // Arrange
             var instrument = Instrument.Create("Guitarra Persistente", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            int expectedChanges = 1;
 
             // Act
             await _adapter.CreateAsync(instrument);
+            int saveResult = await SaveChangesAsync();
             var retrievedInstrument = await _adapter.GetByNameAsync("Guitarra Persistente");
 
             // Assert
             Assert.NotNull(retrievedInstrument.Result);
             Assert.Equal("Guitarra Persistente", retrievedInstrument.Result.Name);
             Assert.Equal(10, retrievedInstrument.Result.Stock);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -97,6 +106,8 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             // Arrange
             var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             await _adapter.CreateAsync(instrument);
+            int expectedChanges = 1;
+            int saveResult = await SaveChangesAsync();
 
             // Act
             var result = await _adapter.GetByNameAsync("Guitarra Eléctrica");
@@ -106,6 +117,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.False(result.HasErrors);
             Assert.NotNull(result.Result);
             Assert.Equal("Guitarra Eléctrica", result.Result.Name);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -126,6 +138,8 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             // Arrange
             var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var createdResult = await _adapter.CreateAsync(instrument);
+            int expectedChanges = 1;
+            int saveResult = await SaveChangesAsync();
 
             // Act
             var result = await _adapter.GetByIdAsync(createdResult.Result.Id);
@@ -136,6 +150,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.NotNull(result.Result);
             Assert.Equal(createdResult.Result.Id, result.Result.Id);
             Assert.Equal("Guitarra Eléctrica", result.Result.Name);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -162,6 +177,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await _adapter.CreateAsync(instrument2);
             await _adapter.CreateAsync(instrument3);
 
+            int expectedChanges = 3;
+            int saveResult = await SaveChangesAsync();
+
             // Act
             var result = await _adapter.GetStockByType(InstrumentType.Stringed);
 
@@ -169,6 +187,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
             Assert.Equal(60, result.Result);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -177,6 +196,8 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             // Arrange
             var instrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             await _adapter.CreateAsync(instrument);
+            int expectedChanges = 1;
+            int saveResult = await SaveChangesAsync();
 
             // Act
             var result = await _adapter.GetStockByType(InstrumentType.Wind);
@@ -185,6 +206,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
             Assert.Equal(0, result.Result);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -199,6 +221,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await _adapter.CreateAsync(windInstrument);
             await _adapter.CreateAsync(keyboardInstrument);
 
+            int expectedChanges = 3;
+            int saveResult = await SaveChangesAsync();
+
             // Act
             var stringedResult = await _adapter.GetStockByType(InstrumentType.Stringed);
             var windResult = await _adapter.GetStockByType(InstrumentType.Wind);
@@ -208,6 +233,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.Equal(10, stringedResult.Result);
             Assert.Equal(5, windResult.Result);
             Assert.Equal(2, keyboardResult.Result);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -231,6 +257,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await Task.Delay(10);
             await _adapter.CreateAsync(instrument3);
 
+            int expectedChanges = 3;
+            int saveResult = await SaveChangesAsync();
+
             // Act
             var result = await _adapter.GetAllAsync(SortDirection.Asc);
 
@@ -242,6 +271,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.Equal("Guitarra Primera", result.Result[0].Name);
             Assert.Equal("Guitarra Segunda", result.Result[1].Name);
             Assert.Equal("Guitarra Tercera", result.Result[2].Name);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -258,6 +288,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await Task.Delay(10);
             await _adapter.CreateAsync(instrument3);
 
+            int expectedChanges = 3;
+            int saveResult = await SaveChangesAsync();
+
             // Act
             var result = await _adapter.GetAllAsync(SortDirection.Desc);
 
@@ -269,6 +302,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.Equal("Guitarra Tercera", result.Result[0].Name);
             Assert.Equal("Guitarra Segunda", result.Result[1].Name);
             Assert.Equal("Guitarra Primera", result.Result[2].Name);
+            Assert.Equal(expectedChanges, saveResult);
         }
 
         [Fact]
@@ -283,15 +317,19 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await _adapter.CreateAsync(instrument2);
             await _adapter.CreateAsync(instrument3);
 
+            int expectedChanges = 3;
+            await SaveChangesAsync();
+
             var idsToDelete = new List<string> { instrument1.Id, instrument2.Id, instrument3.Id };
 
             // Act
             var result = await _adapter.DeleteMultipleAsync(idsToDelete);
-
+            var deleteSaveResult = await SaveChangesAsync();
             // Assert
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
-            Assert.Equal(3, result.Result);
+            Assert.Equal(expectedChanges, result.Result);
+            Assert.Equal(expectedChanges, deleteSaveResult);
 
             // Verify deletion
             var remaining = await _adapter.GetAllAsync();
@@ -308,6 +346,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
 
+            int expectedChanges = 2;
+            int saveResult = await SaveChangesAsync();
+
             var idsToDelete = new List<string> { instrument1.Id, "non-existent-id", instrument2.Id };
 
             // Act
@@ -318,6 +359,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.True(result.HasErrors);
             Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
             Assert.Contains("non-existent-id", result.Errors[0].Message);
+            Assert.Equal(expectedChanges, saveResult);
 
             // Verify no deletion occurred
             var remaining = await _adapter.GetAllAsync();
@@ -350,25 +392,63 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             // Arrange
             var instrument = Instrument.Create("Guitarra Única", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             await _adapter.CreateAsync(instrument);
+            await SaveChangesAsync();
+            int expectedChanges = 1;
 
             var idsToDelete = new List<string> { instrument.Id };
 
             // Act
             var result = await _adapter.DeleteMultipleAsync(idsToDelete);
-
+            int deleteSaveResult = await SaveChangesAsync();
             // Assert
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
             Assert.Equal(1, result.Result);
+            Assert.Equal(expectedChanges, deleteSaveResult);
 
             // Verify deletion
             var remaining = await _adapter.GetAllAsync();
             Assert.Empty(remaining.Result);
         }
 
+        [Fact]
+        public async Task UpdateAsync_ShouldUpdateInstrument_WhenSuccessful()
+        {
+            // Arrange
+            var instrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
+            await _adapter.CreateAsync(instrument);
+            await SaveChangesAsync();
+            int expectedChanges = 1;
+
+            var resultUpdated = instrument.Update("Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
+
+            // Act
+            _adapter.Update(instrument);
+            int saveResult = await SaveChangesAsync();
+
+            // Assert
+            Assert.Equal(expectedChanges, saveResult);
+            Assert.NotNull(resultUpdated.Result);
+            Assert.Equal(instrument.Name, resultUpdated.Result.Name);
+            Assert.Equal(instrument.Description, resultUpdated.Result.Description);
+            Assert.Equal(instrument.Type, resultUpdated.Result.Type);
+            Assert.True(resultUpdated.IsSuccess);
+        }
+
         public void Dispose()
         {
             _context?.Dispose();
+        }
+        private async Task<int> SaveChangesAsync()
+        {
+            try
+            {
+                return await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

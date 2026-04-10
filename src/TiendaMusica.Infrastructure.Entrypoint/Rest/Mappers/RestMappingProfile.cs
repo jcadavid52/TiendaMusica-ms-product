@@ -12,8 +12,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers
         {
             CreateMap<Instrument, InstrumentResponse>()
              .ForMember(dest => dest.CreationDateUtc, opt => opt.MapFrom<DateTimeToBogotaResolver>());
-            CreateMap<InstrumentRequest, CreateInstrumentCommand>();
-            CreateMap<DeleteMultipleInstrumentsRequest, DeleteMultipleInstrumentsCommand>();
+            CreateMap<InstrumentCreateRequest, InstrumentCreateCommand>();
+            CreateMap<InstrumentUpdateRequest, InstrumentUpdateCommand>();
+            CreateMap<InstrumentDeleteMultipleRequest, InstrumentDeleteMultipleCommand>();
         }
     }
 }

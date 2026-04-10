@@ -1,26 +1,24 @@
-﻿using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Enums;
 
 namespace TiendaMusica.Application.Dtos
 {
-    public class CreateInstrumentCommand
+    public class InstrumentUpdateCommand
     {
+        public string Id { get; private set; } = string.Empty;
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public InstrumentType Type { get; private set; }
-        public decimal Price { get; private set; }
-        public int Stock { get; private set; }
 
-        public CreateInstrumentCommand(string name,
+        public InstrumentUpdateCommand(string id,
+            string name,
             string description,
-            InstrumentType type,
-            decimal price,
-            int stock)
+            InstrumentType type
+            )
         {
+            Id = id.Trim();
             Name = name.Trim();
             Description = description.Trim();
             Type = type;
-            Price = price;
-            Stock = stock;
         }
     }
 }

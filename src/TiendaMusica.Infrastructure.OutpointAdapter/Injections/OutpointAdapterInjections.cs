@@ -43,6 +43,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                     });
                     services.AddScoped<InstrumentLiteDbContext>();
                     services.AddScoped<IInstrumentsRepositoryPort, LiteInstrumentRepositoryAdapter>();
+                    services.AddScoped<IUnitOfWork, InstrumentLiteDbUnitOfWork>();
                 }
             }
             else
@@ -58,6 +59,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 
         private static void ConfigureSqlServerDatabase(IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped<IUnitOfWork, InstrumentSqlServerUnitOfWork>();
             var connectionString = configuration.GetSection("Database:SQL:ConnectionStrings:SqlConnection").Value
                 ?? throw new ArgumentNullException("Error al obtener cadena de conexión");
 
@@ -103,7 +105,14 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 Password = password
             };
 
-            services.AddSingleton<IConnection>(sp => factory.CreateConnectionAsync().GetAwaiter().GetResult());
+            services.AddSingleton<IConnectionFactory>(factory);
+
+            services.AddSingleton<IConnection>(sp =>
+            {
+                var factory = sp.GetRequiredService<IConnectionFactory>();
+
+                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+            });
             services.AddScoped<IMessagePublisherPort, RabbitMqPublisherAdapter>();
         }
     }

@@ -5,7 +5,7 @@ using TiendaMusica.Domain.Models.Result;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 {
     [ExcludeFromCodeCoverage]
-    internal class DeleteMultipleInstrumentsResponseExample : IMultipleExamplesProvider<Results<int>>
+    internal class InstrumentsDeleteMultipleResponseExample : IMultipleExamplesProvider<Results<int>>
     {
         public IEnumerable<SwaggerExample<Results<int>>> GetExamples()
         {

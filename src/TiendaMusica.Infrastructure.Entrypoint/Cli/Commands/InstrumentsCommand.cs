@@ -27,7 +27,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
             _tools = tools;
         }
 
-        public async Task GetAllAsync(GetAllInstrumentQuery? query = null)
+        public async Task GetAllAsync(InstrumentGetAllQuery? query = null)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
             {
                 _logger.LogInformation("(Entrypoint CLI) - Iniciando proceso para crear un nuevo instrumento con los datos: {@Command}", command);
 
-                var instrumentCommand = _mapper.Map<CreateInstrumentCommand>(command);
+                var instrumentCommand = _mapper.Map<InstrumentCreateCommand>(command);
                 var instrumentCreateResult = await _instrumentUseCase.CreateAsync(instrumentCommand);
 
                 if (instrumentCreateResult.HasErrors)
@@ -180,7 +180,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                     return;
                 }
 
-                var command = new DeleteMultipleInstrumentsCommand(instrumentIds);
+                var command = new InstrumentDeleteMultipleCommand(instrumentIds);
                 var deleteResult = await _instrumentUseCase.DeleteMultipleAsync(command);
 
                 if (deleteResult.HasErrors)
@@ -205,6 +205,51 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
                     Console.WriteLine("--------------------------------------------");
 
                     _logger.LogInformation("(Entrypoint CLI) - Proceso para eliminar múltiples instrumentos finalizado exitosamente. {Count} instrumentos eliminados", deleteResult.Result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Ocurrió una excepción no controlada: {ex.Message}");
+                Console.ResetColor();
+                _logger.LogError(ex, "Excepción no controlada: {Message}", ex.Message);
+            }
+        }
+
+        public async Task UpdateAsync(InstrumentUpdateCliRequest command)
+        {
+            try
+            {
+                _logger.LogInformation("(Entrypoint CLI) - Iniciando proceso para actualizar instrumento con ID: {InstrumentId}", command.Id);
+
+                var instrumentCommand = _mapper.Map<InstrumentUpdateCommand>(command);
+                var instrumentUpdateResult = await _instrumentUseCase.UpdateAsync(instrumentCommand);
+
+                if (instrumentUpdateResult.HasErrors)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    instrumentUpdateResult.Errors.ForEach(error =>
+                    {
+                        Console.WriteLine($"Error Code: {error.ErrorCode}, Message: {error.Message}");
+                    });
+
+                    Console.ResetColor();
+
+                    _logger.LogWarning("(Entrypoint CLI) - Se encontraron errores al actualizar el instrumento llamando al caso de uso: {Errors}", instrumentUpdateResult.Errors);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Instrumento actualizado exitosamente:");
+                    Console.WriteLine($"Id: {instrumentUpdateResult.Result.Id}");
+                    Console.WriteLine($"Name: {instrumentUpdateResult.Result.Name}");
+                    Console.WriteLine($"Type: {instrumentUpdateResult.Result.Type}");
+                    Console.WriteLine($"Description: {instrumentUpdateResult.Result.Description}");
+                    Console.WriteLine($"Price: {instrumentUpdateResult.Result.Price}");
+                    Console.WriteLine($"Stock: {instrumentUpdateResult.Result.Stock}");
+                    Console.ResetColor();
+                    _logger.LogInformation("(Entrypoint CLI) - Proceso para actualizar instrumento finalizado exitosamente con ID: {InstrumentId}", instrumentUpdateResult.Result.Id);
                 }
             }
             catch (Exception ex)

@@ -7,7 +7,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 {
     [ExcludeFromCodeCoverage]
-    internal class CreateInstrumentResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
+    internal class InstrumentGetByIdResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
     {
         private readonly string _dateFormat = "dd-MM-yyyy HH:mm:ss";
         public IEnumerable<SwaggerExample<Results<InstrumentResponse>>> GetExamples()
@@ -15,20 +15,20 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
             var response = new Results<InstrumentResponse>();
 
             var instrument = new InstrumentResponse(
-                Id: "1",
-                Name: "Nombre Ejemplo Instrumento Creado",
-                Description: "Descripción ejemplo instrumento creado.",
-                Type: InstrumentType.Stringed,
-                Price: 999.99m,
-                Stock: 10
-            )
+                                Id: "1",
+                                Name: "Ejemplo nombre instrumento 1",
+                                Description: "Ejemplo descripción instrumento 1",
+                                Type: InstrumentType.Stringed,
+                                Price: 999.99m,
+                                Stock: 10
+                             )
             {
-                CreationDateUtc = DateTime.UtcNow.ToString(_dateFormat)
+                CreationDateUtc = DateTime.UtcNow.AddDays(-30).ToString(_dateFormat)
             };
 
             response.Result = instrument;
 
-            yield return SwaggerExample.Create("CreateInstrumentResponseExample", response);
+            yield return SwaggerExample.Create("GetInstrumentByIdResponseExample", response);
         }
     }
 }

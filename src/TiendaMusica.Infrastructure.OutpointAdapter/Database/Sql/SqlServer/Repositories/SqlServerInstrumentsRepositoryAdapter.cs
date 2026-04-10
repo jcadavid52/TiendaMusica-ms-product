@@ -66,20 +66,16 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
 
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
-            return await _circuitBreakerPolicy.ExecuteAsync(async () =>
-            {
-                await _context.Instruments.AddAsync(instrument);
-                await _context.SaveChangesAsync();
+            await _context.Instruments.AddAsync(instrument);
 
-                return new Results<Instrument> { Result = instrument };
-            });
+            return new Results<Instrument> { Result = instrument };
         }
 
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
-                var instrument = await _context.Instruments
+                var instrument = await _context.Instruments.AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Name == name);
                 return new Results<Instrument?> { Result = instrument };
             });
@@ -89,7 +85,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
-                var instrument = await _context.Instruments
+                var instrument = await _context.Instruments.AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == id);
                 return new Results<Instrument?> { Result = instrument };
             });
@@ -99,34 +95,35 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
              {
-                 var totalStock = await _context.Instruments
+                 var totalStock = await _context.Instruments.AsNoTracking()
                      .Where(i => i.Type == type)
                      .SumAsync(i => i.Stock);
                  return new Results<int> { Result = totalStock };
              });
         }
 
+        public void Update(Instrument instrument)
+        {
+            _context.Instruments.Update(instrument);
+        }
+
         public async Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds)
         {
-            return await _circuitBreakerPolicy.ExecuteAsync(async () =>
+            var results = new Results<int>();
+            var toDelete = await _context.Instruments
+                .Where(i => instrumentIds.Contains(i.Id))
+                .ToListAsync();
+
+            if (toDelete.Count != instrumentIds.Distinct().Count())
             {
-                var results = new Results<int>();
-                var toDelete = await _context.Instruments
-                    .Where(i => instrumentIds.Contains(i.Id))
-                    .ToListAsync();
+                var idsFounds = toDelete.Select(p => p.Id);
+                var idsMissing = instrumentIds.Except(idsFounds);
+                return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
+            }
 
-                if (toDelete.Count != instrumentIds.Distinct().Count())
-                {
-                    var idsFounds = toDelete.Select(p => p.Id);
-                    var idsMissing = instrumentIds.Except(idsFounds);
-                    return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
-                }
-
-                _context.Instruments.RemoveRange(toDelete);
-                await _context.SaveChangesAsync();
-                results.Result = toDelete.Count;
-                return results;
-            });
+            _context.Instruments.RemoveRange(toDelete);
+            results.Result = toDelete.Count;
+            return results;
         }
     }
 }

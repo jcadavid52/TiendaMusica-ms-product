@@ -41,8 +41,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [HttpGet]
         [EnableRateLimiting("read")]
         [SwaggerOperation(Summary = "Permite listar instrumentos", Description = "Permite obtener todos los instrumentos que existen en el catálogo.")]
-        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GetInstrumentsResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(InstrumentGetAllResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(InstrumentErrorInternalServerResponseExample))]
         [ProducesResponseType(typeof(Results<IList<InstrumentResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
@@ -55,7 +55,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         {
             _logger.LogInformation("(endpoint api rest) - Iniciando  proceso para obtener todos los instrumentos");
             var response = new Results<IList<InstrumentResponse>>();
-            var query = new GetAllInstrumentQuery(sortDirection, search, pageSize, pageNumber);
+            var query = new InstrumentGetAllQuery(sortDirection, search, pageSize, pageNumber);
             var instruments = await _instrumentUseCase.GetAllAsync(query);
 
             if (instruments.HasErrors)
@@ -77,9 +77,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [HttpGet("{id}")]
         [EnableRateLimiting("read")]
         [SwaggerOperation(Summary = "Permite obtener un instrumento por ID", Description = "Permite obtener un instrumento específico del catálogo por su identificador.")]
-        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(GetInstrumentsResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status404NotFound, typeof(ErrorInternalServerInstrumentResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(InstrumentGetAllResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status404NotFound, typeof(InstrumentErrorInternalServerResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(InstrumentErrorInternalServerResponseExample))]
         [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
@@ -113,13 +113,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [HttpPost]
         [EnableRateLimiting("write")]
         [SwaggerOperation(Summary = "Permite crear un instrumento", Description = "Permite crear un instrumento que existen para el catálogo con los tipos Stringed - Wind - keyboard.")]
-        [SwaggerResponseExample(StatusCodes.Status201Created, typeof(CreateInstrumentResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(ErrorBadRequestInstrumentResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status201Created, typeof(InstrumentCreateResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(InstrumentErrorBadRequestResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(InstrumentErrorInternalServerResponseExample))]
         [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Create([FromBody] InstrumentRequest request)
+        public async Task<IActionResult> Create([FromBody] InstrumentCreateRequest request)
         {
             _logger.LogInformation("(endpoint api rest) - Iniciando proceso para crear un nuevo instrumento con los datos: {@Request}", request);
             var response = new Results<InstrumentResponse>();
@@ -137,7 +137,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
                 return BadRequest(response);
             }
 
-            var instrumentCommand = _mapper.Map<CreateInstrumentCommand>(request);
+            var instrumentCommand = _mapper.Map<InstrumentCreateCommand>(request);
 
             var instrumentCreate = await _instrumentUseCase.CreateAsync(instrumentCommand);
 
@@ -160,18 +160,18 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [HttpDelete("delete-multiple")]
         [EnableRateLimiting("write")]
         [SwaggerOperation(Summary = "Permite eliminar múltiples instrumentos", Description = "Permite eliminar varios instrumentos del catálogo proporcionando una lista de IDs.")]
-        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(DeleteMultipleInstrumentsResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(ErrorBadRequestInstrumentResponseExample))]
-        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(ErrorInternalServerInstrumentResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(InstrumentsDeleteMultipleResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(InstrumentErrorBadRequestResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(InstrumentErrorInternalServerResponseExample))]
         [ProducesResponseType(typeof(Results<int>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteMultipleAsync([FromBody] DeleteMultipleInstrumentsRequest request)
+        public async Task<IActionResult> DeleteMultipleAsync([FromBody] InstrumentDeleteMultipleRequest request)
         {
             _logger.LogInformation("(endpoint api rest) - Iniciando proceso para eliminar múltiples instrumentos: {InstrumentIds}", string.Join(", ", request.InstrumentIds));
             var response = new Results<int>();
 
-            var command = _mapper.Map<DeleteMultipleInstrumentsCommand>(request);
+            var command = _mapper.Map<InstrumentDeleteMultipleCommand>(request);
             var deleteResult = await _instrumentUseCase.DeleteMultipleAsync(command);
 
             if (deleteResult.HasErrors)
@@ -187,6 +187,62 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
 
             int statusCode = _restTools.GetHttpStatusCode(response.Errors);
             _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de eliminación de múltiples instrumentos", statusCode);
+            return StatusCode(statusCode, response);
+        }
+
+        [HttpPut("{id}")]
+        [EnableRateLimiting("write")]
+        [SwaggerOperation(Summary = "Permite actualizar un instrumento", Description = "Permite actualizar un instrumento existente en el catálogo.")]
+        [SwaggerResponseExample(StatusCodes.Status200OK, typeof(InstrumentUpdateResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status400BadRequest, typeof(InstrumentErrorBadRequestResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status404NotFound, typeof(InstrumentErrorInternalServerResponseExample))]
+        [SwaggerResponseExample(StatusCodes.Status500InternalServerError, typeof(InstrumentErrorInternalServerResponseExample))]
+        [ProducesResponseType(typeof(Results<InstrumentResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] InstrumentUpdateRequest request)
+        {
+            _logger.LogInformation("(endpoint api rest) - Iniciando proceso para actualizar instrumento con ID: {InstrumentId}", id);
+            var response = new Results<InstrumentResponse>();
+
+            if (id != request.Id)
+            {
+                response.AddError(ErrorCode.VALIDATION_ERROR, "El ID en la ruta no coincide con el ID en el cuerpo de la solicitud");
+                _logger.LogWarning("(endpoint api rest) - El ID en la ruta no coincide con el ID en el cuerpo de la solicitud");
+                return BadRequest(response);
+            }
+
+            var validator = new InstrumentUpdateRequestValidator();
+            var result = validator.Validate(request);
+
+            if (!result.IsValid)
+            {
+                response.AddErrors(result.Errors.Select(error => new TiendaMusicaError(
+                   ErrorCode.VALIDATION_ERROR,
+                   $"Error en la propiedad {error.PropertyName}: {error.ErrorMessage}")
+                ));
+                _logger.LogWarning("(endpoint api rest) - Validación fallida del request para la solicitud de actualización de instrumento: {Errors}", response.Errors);
+                return BadRequest(response);
+            }
+
+            var instrumentCommand = _mapper.Map<InstrumentUpdateCommand>(request);
+
+            var instrumentUpdate = await _instrumentUseCase.UpdateAsync(instrumentCommand);
+
+            if (instrumentUpdate.HasErrors)
+            {
+                response.AddErrors(instrumentUpdate.Errors);
+                _logger.LogWarning("(endpoint api rest) - Se encontraron errores al actualizar el instrumento llamando al caso de uso: {Errors}", instrumentUpdate.Errors);
+            }
+            else
+            {
+                response.Result = _mapper.Map<InstrumentResponse>(instrumentUpdate.Result);
+                _logger.LogInformation("(endpoint api rest) - Proceso para actualizar instrumento finalizado exitosamente con ID: {InstrumentId}", response.Result.Id);
+            }
+
+            int statusCode = _restTools.GetHttpStatusCode(response.Errors);
+            _logger.LogInformation("(endpoint api rest) - Retornando respuesta con código de estado {StatusCode} para la solicitud de actualización de instrumento", statusCode);
             return StatusCode(statusCode, response);
         }
     }

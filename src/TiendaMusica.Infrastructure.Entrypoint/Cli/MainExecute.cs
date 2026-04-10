@@ -54,6 +54,13 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
                         }
 
                         break;
+                    case InstrumentParameters.Update:
+
+                        var updateCommand = BuildCliUpdateRequest(args);
+                        await instrumentsCommand.UpdateAsync(updateCommand);
+                        Log.Information("Actualizando instrumento con ID: {InstrumentId}", updateCommand.Id);
+
+                        break;
                     case InstrumentParameters.GetById:
 
                         var instrumentId = BuildGetByIdRequest();
@@ -160,17 +167,74 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
             Console.WriteLine("Uso:");
             Console.WriteLine("  instrument-list                - Lista todos los instrumentos");
             Console.WriteLine("  instrument-add                 - Agrega un nuevo instrumento");
+            Console.WriteLine("  instrument-update              - Actualiza un instrumento existente");
             Console.WriteLine("  instrument-getbyid             - Obtiene un instrumento por su ID");
             Console.WriteLine("  instrument-delete-multiple     - Elimina múltiples instrumentos por ID");
             Console.WriteLine("  help                           - Muestra esta ayuda");
             Console.WriteLine("\nEjemplos:");
             Console.WriteLine("  instrument-add");
+            Console.WriteLine("  instrument-update");
             Console.WriteLine("  instrument-getbyid");
             Console.WriteLine("  instrument-delete-multiple");
             Console.ResetColor();
         }
 
-        private static GetAllInstrumentQuery? BuildGetAllQuery()
+        private static InstrumentUpdateCliRequest BuildCliUpdateRequest(string[] args)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("╔═══════════════════════════════════════════════════════╗");
+            Console.WriteLine("║           Actualización de Instrumento               ║");
+            Console.WriteLine("╚═══════════════════════════════════════════════════════╝");
+            Console.ResetColor();
+
+            Console.Write("ID del instrumento a actualizar: ");
+            string? id = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("El ID es requerido.");
+            }
+
+            Console.Write("Nombre: ");
+            string? name = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException("El nombre es requerido.");
+            }
+
+            Console.Write("Descripción: ");
+            string? description = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                throw new ArgumentNullException("La descripción es requerida.");
+            }
+
+            Console.Write("Tipo (Wind | Stringed | Keyboard | Percussion): ");
+            string? type = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentNullException("El tipo es requerido.");
+            }
+
+            if (!Enum.TryParse<InstrumentType>(type, true, out var instrumentType))
+            {
+                Log.Warning("Intento de actualizar instrumento con tipo inválido: {Type}", type);
+                throw new ArgumentNullException($"'{type}' no es un tipo de instrumento válido.");
+            }
+
+            return new InstrumentUpdateCliRequest(
+                Id: id,
+                Name: name,
+                Description: description,
+                Type: instrumentType
+            );
+        }
+
+        private static InstrumentGetAllQuery? BuildGetAllQuery()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -202,7 +266,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
 
                 Console.ResetColor();
 
-                return new GetAllInstrumentQuery(
+                return new InstrumentGetAllQuery(
                     PageSize: int.Parse(pageSizeInput),
                     Search: search,
                     PageNumber: int.Parse(pageNumberInput)

@@ -2,6 +2,7 @@
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
+using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq
@@ -22,30 +23,43 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq
             ?? "tienda.musica.events";
 
         }
-        public async Task PublishAsync<T>(T @event) where T : class
+        public async Task<Results<bool>> PublishAsync<T>(T @event) where T : class
         {
-            using var channel = await _connection.CreateChannelAsync();
-            var message = JsonSerializer.Serialize(@event);
-            var body = Encoding.UTF8.GetBytes(message);
+            var results = new Results<bool>();
 
-            await channel.ExchangeDeclareAsync(
-            exchange: _exchange,
-            type: ExchangeType.Topic,
-            durable: true);
-
-            var properties = new BasicProperties
+            try
             {
-                Persistent = true,
-                ContentType = "application/json",
-                Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
-            };
+                using var channel = await _connection.CreateChannelAsync();
+                var message = JsonSerializer.Serialize(@event);
+                var body = Encoding.UTF8.GetBytes(message);
 
-            await channel.BasicPublishAsync(
-            exchange: _exchange,
-            routingKey: typeof(T).Name,
-            mandatory: true,
-            basicProperties: properties,
-            body: body);
+                await channel.ExchangeDeclareAsync(
+                exchange: _exchange,
+                type: ExchangeType.Topic,
+                durable: true);
+
+                var properties = new BasicProperties
+                {
+                    Persistent = true,
+                    ContentType = "application/json",
+                    Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                };
+                await channel.BasicPublishAsync(
+                exchange: _exchange,
+                routingKey: @event.GetType().Name,
+                mandatory: true,
+                basicProperties: properties,
+                body: body);
+
+                results.Result = true;
+            }
+            catch (Exception ex)
+            {
+                results.Result = false;
+                return results.AddError(ErrorCode.PUBLISH_MESSAGE_ERROR, $"Failed to publish message: {ex.Message}");
+            }
+
+            return results;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using LiteDB;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
+using TiendaMusica.Domain.Models;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
 
@@ -10,6 +11,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
     public class InstrumentLiteDbContext : IDisposable
     {
         public LiteDatabase Context { get; }
+        private readonly List<object> _trackedEntities = new();
 
         public InstrumentLiteDbContext(IOptions<LiteDbConfig> configs)
         {
@@ -45,6 +47,21 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         }
 
         public ILiteCollection<InstrumentDocument> InstrumentsCollection => Context.GetCollection<InstrumentDocument>("Instruments");
+
+        public void RegisterEntity<T>(T entity) where T : class
+        {
+            if (!_trackedEntities.Contains(entity))
+            {
+                _trackedEntities.Add(entity);
+            }
+        }
+
+        public IEnumerable<AggregateRoot<TId>> GetTrackedEntities<TId>()
+        {
+            return _trackedEntities.OfType<AggregateRoot<TId>>();
+        }
+
+        public void ClearTracker() => _trackedEntities.Clear();
 
         public void Dispose()
         {

@@ -27,36 +27,30 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             int? take = null
             )
         {
-            var instruments = await Task.Run(() =>
+            var collection = _context.InstrumentsCollection;
+            var query = collection.FindAll();
+            var domainItems = query.Select(x => _mapper.Map<Instrument>(x));
+
+            if (filters != null)
             {
-                var collection = _context.InstrumentsCollection;
-                var query = collection.FindAll();
-                var domainItems = query.Select(x => _mapper.Map<Instrument>(x));
-
-                if (filters != null)
+                foreach (var filter in filters)
                 {
-                    foreach (var filter in filters)
-                    {
-                        domainItems = domainItems.Where(filter.Compile());
-                    }
+                    domainItems = domainItems.Where(filter.Compile());
                 }
+            }
 
-                if (sortDirection == SortDirection.Desc)
-                    domainItems = domainItems.OrderByDescending(x => x.CreationDateUtc);
-                else
-                    domainItems = domainItems.OrderBy(x => x.CreationDateUtc);
+            if (sortDirection == SortDirection.Desc)
+                domainItems = domainItems.OrderByDescending(x => x.CreationDateUtc);
+            else
+                domainItems = domainItems.OrderBy(x => x.CreationDateUtc);
 
-                if (skip.HasValue)
-                    domainItems = domainItems.Skip(skip.Value);
+            if (skip.HasValue)
+                domainItems = domainItems.Skip(skip.Value);
 
-                if (take.HasValue)
-                    domainItems = domainItems.Take(take.Value);
+            if (take.HasValue)
+                domainItems = domainItems.Take(take.Value);
 
-
-                return domainItems.ToList();
-            });
-
-            return new Results<IList<Instrument>> { Result = instruments };
+            return new Results<IList<Instrument>> { Result = domainItems.ToList() };
         }
 
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
@@ -79,23 +73,20 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
 
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
-            var document = await Task.Run(() =>
+
+            var collection = _context.InstrumentsCollection;
+            var doc = _mapper.Map<InstrumentDocument>(instrument);
+
+            if (string.IsNullOrWhiteSpace(doc.Id))
             {
-                var collection = _context.InstrumentsCollection;
-                var doc = _mapper.Map<InstrumentDocument>(instrument);
+                doc.Id = Guid.NewGuid().ToString();
+            }
 
-                if (string.IsNullOrWhiteSpace(doc.Id))
-                {
-                    doc.Id = Guid.NewGuid().ToString();
-                }
+            doc.CreationDateUtc = DateTime.UtcNow;
+            collection.Insert(doc);
 
-                doc.CreationDateUtc = DateTime.UtcNow;
-                collection.Insert(doc);
-
-                return doc;
-            });
-
-            return new Results<Instrument> { Result = instrument };
+            _context.RegisterEntity(instrument);
+            return new Results<Instrument> { Result = _mapper.Map<Instrument>(doc) };
         }
 
         public async Task<Results<int>> GetStockByType(InstrumentType type)
@@ -109,7 +100,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
 
         public async Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds)
         {
-
             var results = new Results<int>();
             var collection = _context.InstrumentsCollection;
             var count = 0;
@@ -131,6 +121,14 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
 
             results.Result = count;
             return results;
+        }
+
+        public void Update(Instrument instrument)
+        {
+            var collection = _context.InstrumentsCollection;
+            var instrumentDocument = _mapper.Map<InstrumentDocument>(instrument);
+
+            collection.Update(instrumentDocument);
         }
     }
 }

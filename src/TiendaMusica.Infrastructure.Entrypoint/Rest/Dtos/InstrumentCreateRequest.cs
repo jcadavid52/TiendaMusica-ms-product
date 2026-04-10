@@ -2,7 +2,7 @@
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos
 {
-    public record InstrumentRequest(
+    public record InstrumentCreateRequest(
         string Name,
         string Description,
         InstrumentType Type,

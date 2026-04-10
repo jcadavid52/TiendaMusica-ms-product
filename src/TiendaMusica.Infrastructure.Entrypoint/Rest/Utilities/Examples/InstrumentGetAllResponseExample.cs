@@ -7,7 +7,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 {
     [ExcludeFromCodeCoverage]
-    internal class GetInstrumentsResponseExample : IMultipleExamplesProvider<Results<IList<InstrumentResponse>>>
+    internal class InstrumentGetAllResponseExample : IMultipleExamplesProvider<Results<IList<InstrumentResponse>>>
     {
         private readonly string _dateFormat = "dd-MM-yyyy HH:mm:ss";
         public IEnumerable<SwaggerExample<Results<IList<InstrumentResponse>>>> GetExamples()

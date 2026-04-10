@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
+using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
@@ -50,6 +53,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     });
                 }
 
+                RemoveRabbitMqInjections(services);
+
                 ActiveDb = activeDb;
 
             });
@@ -61,18 +66,30 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             return base.CreateHost(builder);
         }
 
+        private void RemoveRabbitMqInjections(IServiceCollection services)
+        {
+            var rabbitConnection = services.SingleOrDefault(d => d.ServiceType == typeof(IConnection));
+            if (rabbitConnection != null) services.Remove(rabbitConnection);
+
+            var publisher = services.SingleOrDefault(d => d.ServiceType == typeof(IMessagePublisherPort));
+            if (publisher != null) services.Remove(publisher);
+
+            services.RemoveAll<IMessagePublisherPort>();
+            services.AddScoped<IMessagePublisherPort, TestMessagePublisher>();
+        }
+
         public async Task<IList<InstrumentCommonInfoDto>> ScopedDatabaseAsync()
         {
             if (string.Equals("LiteDb", ActiveDb, StringComparison.InvariantCultureIgnoreCase))
             {
                 var docs = ScopedDatabaseLiteDb();
 
-                return docs.Select(d => new InstrumentCommonInfoDto(d.Id,d.Name)).ToList();
+                return docs.Select(d => new InstrumentCommonInfoDto(d.Id, d.Name)).ToList();
             }
             else
             {
                 var entities = await ScopedDatabaseSqlServer();
-                return entities.Select(e => new InstrumentCommonInfoDto(e.Id,e.Name)).ToList();
+                return entities.Select(e => new InstrumentCommonInfoDto(e.Id, e.Name)).ToList();
             }
         }
 
@@ -148,5 +165,16 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         }
     }
 
-    public record InstrumentCommonInfoDto(string Id,string Name);
+    public record InstrumentCommonInfoDto(string Id, string Name);
+
+    public class TestMessagePublisher : IMessagePublisherPort
+    {
+        async Task<Results<bool>> IMessagePublisherPort.PublishAsync<T>(T @event)
+        {
+            return new Results<bool>
+            {
+                Result = true,
+            };
+        }
+    }
 }

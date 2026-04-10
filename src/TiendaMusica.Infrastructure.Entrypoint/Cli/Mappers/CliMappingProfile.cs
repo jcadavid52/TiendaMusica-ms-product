@@ -8,7 +8,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Mappers
     {
         public CliMappingProfile()
         {
-            CreateMap<InstrumentCreateCliRequest, CreateInstrumentCommand>();
+            CreateMap<InstrumentCreateCliRequest, InstrumentCreateCommand>();
+            CreateMap<InstrumentUpdateCliRequest, InstrumentUpdateCommand>();
         }
     }
 }

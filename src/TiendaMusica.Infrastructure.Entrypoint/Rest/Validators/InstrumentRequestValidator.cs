@@ -3,7 +3,7 @@ using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Validators
 {
-    internal class InstrumentRequestValidator : AbstractValidator<InstrumentRequest>
+    internal class InstrumentRequestValidator : AbstractValidator<InstrumentCreateRequest>
     {
         public InstrumentRequestValidator()
         {

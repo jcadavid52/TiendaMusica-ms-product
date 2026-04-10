@@ -6,15 +6,15 @@ using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
 namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
 {
     [ExcludeFromCodeCoverage]
-    internal class ErrorInternalServerInstrumentResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
+    internal class InstrumentErrorBadRequestResponseExample : IMultipleExamplesProvider<Results<InstrumentResponse>>
     {
         public IEnumerable<SwaggerExample<Results<InstrumentResponse>>> GetExamples()
         {
             var response = new Results<InstrumentResponse>();
 
-            response.AddError(ErrorCode.SERVER_ERROR, "An unexpected error occurred while processing the request.");
+            response.AddError(ErrorCode.VALIDATION_ERROR, "Error en el request de la solicitud, revise e intente nuevamente");
 
-            yield return SwaggerExample.Create("ErrorInternalServerInstrumentResponseExample", response);
+            yield return SwaggerExample.Create("ErrorBadRequestInstrumentResponseExample", response);
         }
     }
 }

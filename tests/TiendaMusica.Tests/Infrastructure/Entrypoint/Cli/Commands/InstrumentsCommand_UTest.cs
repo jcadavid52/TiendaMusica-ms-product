@@ -45,20 +45,20 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                 Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
             };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments.OrderBy(i => i.CreationDateUtc).ToList()
                 });
 
-            var query = new GetAllInstrumentQuery(SortDirection.Asc, null, 10, 1);
+            var query = new InstrumentGetAllQuery(SortDirection.Asc, null, 10, 1);
 
             // Act
             await _instrumentsCommand.GetAllAsync(query);
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q =>
+                It.Is<InstrumentGetAllQuery>(q =>
                     q.SortDirection == SortDirection.Asc &&
                     q.PageSize == 10 &&
                     q.PageNumber == 1
@@ -76,20 +76,20 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                 Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
             };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments.OrderByDescending(i => i.CreationDateUtc).ToList()
                 });
 
-            var query = new GetAllInstrumentQuery(SortDirection.Desc, null, 10, 1);
+            var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 10, 1);
 
             // Act
             await _instrumentsCommand.GetAllAsync(query);
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q =>
+                It.Is<InstrumentGetAllQuery>(q =>
                     q.SortDirection == SortDirection.Desc &&
                     q.PageSize == 10 &&
                     q.PageNumber == 1
@@ -105,20 +105,20 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                 Instrument.Create("Guitarra eléctrica", "Guitarra descripción test", InstrumentType.Stringed,500,10).Result
             };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments
                 });
 
-            var query = new GetAllInstrumentQuery(SortDirection.Desc, "Guitarra", 10, 1);
+            var query = new InstrumentGetAllQuery(SortDirection.Desc, "Guitarra", 10, 1);
 
             // Act
             await _instrumentsCommand.GetAllAsync(query);
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q =>
+                It.Is<InstrumentGetAllQuery>(q =>
                     q.Search == "Guitarra" &&
                     q.SortDirection == SortDirection.Desc
                 )), Times.Once);
@@ -134,20 +134,20 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                 expectedInstruments.Add(Instrument.Create($"Instrumento {i}", $"Descripción {i}", InstrumentType.Stringed, 100 * i, i).Result);
             }
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Result = expectedInstruments
                 });
 
-            var query = new GetAllInstrumentQuery(SortDirection.Desc, null, 5, 2);
+            var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 5, 2);
 
             // Act
             await _instrumentsCommand.GetAllAsync(query);
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<GetAllInstrumentQuery>(q =>
+                It.Is<InstrumentGetAllQuery>(q =>
                     q.PageSize == 5 &&
                     q.PageNumber == 2
                 )), Times.Once);
@@ -157,7 +157,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         public async Task GetAllAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
         {
             // Arrange
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
                 .ReturnsAsync(new Results<IList<Instrument>>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -166,13 +166,13 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                     }
                 });
 
-            var query = new GetAllInstrumentQuery();
+            var query = new InstrumentGetAllQuery();
 
             // Act
             await _instrumentsCommand.GetAllAsync(query);
 
             // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(It.IsAny<GetAllInstrumentQuery>()), Times.Once);
+            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()), Times.Once);
         }
 
         [Fact]
@@ -180,13 +180,13 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         {
             // Arrange
             var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
-            var createCommand = new CreateInstrumentCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
             var createdInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
 
-            _mapperMock.Setup(m => m.Map<CreateInstrumentCommand>(cliRequest))
+            _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<InstrumentCreateCommand>()))
                 .ReturnsAsync(new Results<Instrument>
                 {
                     Result = createdInstrument
@@ -196,9 +196,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             await _instrumentsCommand.CreateAsync(cliRequest);
 
             // Assert
-            _mapperMock.Verify(m => m.Map<CreateInstrumentCommand>(cliRequest), Times.Once);
+            _mapperMock.Verify(m => m.Map<InstrumentCreateCommand>(cliRequest), Times.Once);
             _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(
-                It.Is<CreateInstrumentCommand>(cmd =>
+                It.Is<InstrumentCreateCommand>(cmd =>
                     cmd.Name == "Guitarra Eléctrica" &&
                     cmd.Description == "Descripción test" &&
                     cmd.Type == InstrumentType.Stringed &&
@@ -212,12 +212,12 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         {
             // Arrange
             var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
-            var createCommand = new CreateInstrumentCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
 
-            _mapperMock.Setup(m => m.Map<CreateInstrumentCommand>(cliRequest))
+            _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<InstrumentCreateCommand>()))
                 .ReturnsAsync(new Results<Instrument>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -230,7 +230,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             await _instrumentsCommand.CreateAsync(cliRequest);
 
             // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(It.IsAny<CreateInstrumentCommand>()), Times.Once);
+            _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(It.IsAny<InstrumentCreateCommand>()), Times.Once);
         }
 
         [Fact]
@@ -238,12 +238,12 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         {
             // Arrange
             var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
-            var createCommand = new CreateInstrumentCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
 
-            _mapperMock.Setup(m => m.Map<CreateInstrumentCommand>(cliRequest))
+            _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<CreateInstrumentCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.CreateAsync(It.IsAny<InstrumentCreateCommand>()))
                 .ReturnsAsync(new Results<Instrument>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -257,7 +257,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.CreateAsync(
-                It.Is<CreateInstrumentCommand>(cmd => cmd.Name == "Guitarra Eléctrica")), Times.Once);
+                It.Is<InstrumentCreateCommand>(cmd => cmd.Name == "Guitarra Eléctrica")), Times.Once);
         }
 
         [Fact]
@@ -341,9 +341,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         {
             // Arrange
             var idsToDelete = new List<string> { "id1", "id2", "id3" };
-            var deleteCommand = new DeleteMultipleInstrumentsCommand(idsToDelete);
+            var deleteCommand = new InstrumentDeleteMultipleCommand(idsToDelete);
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()))
                 .ReturnsAsync(new Results<int>
                 {
                     Result = 3
@@ -354,7 +354,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
-                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                It.Is<InstrumentDeleteMultipleCommand>(cmd =>
                     cmd.InstrumentIds.Count == 3 &&
                     cmd.InstrumentIds[0] == "id1" &&
                     cmd.InstrumentIds[1] == "id2" &&
@@ -368,7 +368,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Arrange
             var idsToDelete = new List<string> { "id1", "id2" };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()))
                 .ReturnsAsync(new Results<int>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -381,7 +381,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             await _instrumentsCommand.DeleteMultipleAsync(idsToDelete);
 
             // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()), Times.Once);
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()), Times.Once);
         }
 
         [Fact]
@@ -390,7 +390,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Arrange
             var idsToDelete = new List<string>();
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()))
                 .ReturnsAsync(new Results<int>
                 {
                     Errors = new List<TiendaMusicaError>
@@ -404,7 +404,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
-                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                It.Is<InstrumentDeleteMultipleCommand>(cmd =>
                     cmd.InstrumentIds.Count == 0
                 )), Times.Never);
         }
@@ -415,7 +415,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Arrange
             var idsToDelete = new List<string> { "id1", "non-existent-id", "id3" };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()))
+            _instrumentUseCaseMock.Setup(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()))
                 .ReturnsAsync(new Results<int>
                 {
                     Result = 2
@@ -426,7 +426,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
 
             // Assert
             _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(
-                It.Is<DeleteMultipleInstrumentsCommand>(cmd =>
+                It.Is<InstrumentDeleteMultipleCommand>(cmd =>
                     cmd.InstrumentIds.Count == 3
                 )), Times.Once);
         }
@@ -438,7 +438,91 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             await _instrumentsCommand.DeleteMultipleAsync(new List<string>());
 
             // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<DeleteMultipleInstrumentsCommand>()), Times.Never);
+            _instrumentUseCaseMock.Verify(useCase => useCase.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldUpdateInstrument_WhenUseCaseReturnsSuccess()
+        {
+            // Arrange
+            var cliRequest = new InstrumentUpdateCliRequest("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+            var updateCommand = new InstrumentUpdateCommand("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+            var updatedInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
+
+            _mapperMock.Setup(m => m.Map<InstrumentUpdateCommand>(cliRequest))
+                .Returns(updateCommand);
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.UpdateAsync(It.IsAny<InstrumentUpdateCommand>()))
+                .ReturnsAsync(new Results<Instrument>
+                {
+                    Result = updatedInstrument
+                });
+
+            // Act
+            await _instrumentsCommand.UpdateAsync(cliRequest);
+
+            // Assert
+            _mapperMock.Verify(m => m.Map<InstrumentUpdateCommand>(cliRequest), Times.Once);
+            _instrumentUseCaseMock.Verify(useCase => useCase.UpdateAsync(
+                It.Is<InstrumentUpdateCommand>(cmd =>
+                    cmd.Id == "test-id" &&
+                    cmd.Name == "Guitarra Eléctrica" &&
+                    cmd.Description == "Descripción test" &&
+                    cmd.Type == InstrumentType.Stringed
+                )), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
+        {
+            // Arrange
+            var cliRequest = new InstrumentUpdateCliRequest("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+            var updateCommand = new InstrumentUpdateCommand("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+
+            _mapperMock.Setup(m => m.Map<InstrumentUpdateCommand>(cliRequest))
+                .Returns(updateCommand);
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.UpdateAsync(It.IsAny<InstrumentUpdateCommand>()))
+                .ReturnsAsync(new Results<Instrument>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.UpdateAsync(cliRequest);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.UpdateAsync(It.IsAny<InstrumentUpdateCommand>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldHandleNotFoundError_WhenInstrumentNotExists()
+        {
+            // Arrange
+            var cliRequest = new InstrumentUpdateCliRequest("non-existent-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+            var updateCommand = new InstrumentUpdateCommand("non-existent-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
+
+            _mapperMock.Setup(m => m.Map<InstrumentUpdateCommand>(cliRequest))
+                .Returns(updateCommand);
+
+            _instrumentUseCaseMock.Setup(useCase => useCase.UpdateAsync(It.IsAny<InstrumentUpdateCommand>()))
+                .ReturnsAsync(new Results<Instrument>
+                {
+                    Errors = new List<TiendaMusicaError>
+                    {
+                        new TiendaMusicaError(ErrorCode.NOT_FOUND, "Instrumento no encontrado")
+                    }
+                });
+
+            // Act
+            await _instrumentsCommand.UpdateAsync(cliRequest);
+
+            // Assert
+            _instrumentUseCaseMock.Verify(useCase => useCase.UpdateAsync(
+                It.Is<InstrumentUpdateCommand>(cmd => cmd.Id == "non-existent-id")), Times.Once);
         }
     }
 }

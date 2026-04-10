@@ -404,6 +404,61 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             Assert.Empty(remaining.Result);
         }
 
+        //[Fact]
+        //public async Task UpdateAsync_ShouldUpdateInstrument_WhenSuccessful()
+        //{
+        //    // Arrange
+        //    var instrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
+        //    await _adapter.CreateAsync(instrument);
+
+        //    instrument.Update("Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
+
+        //    // Act
+        //    await _adapter.UpdateAsync(instrument);
+
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Equal("Guitarra Actualizada", result.Result.Name);
+        //    Assert.Equal("Descripción actualizada", result.Result.Description);
+        //}
+
+        //[Fact]
+        //public async Task UpdateAsync_ShouldReturnNotFoundError_WhenInstrumentNotExists()
+        //{
+        //    // Arrange
+        //    var instrument = Instrument.Create("Guitarra Fantasma", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+
+        //    // Act
+        //    var result = await _adapter.UpdateAsync(instrument);
+
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.True(result.HasErrors);
+        //    Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
+        //    Assert.Contains("no encontrado", result.Errors[0].Message);
+        //}
+
+        [Fact]
+        public async Task UpdateAsync_ShouldPersistChanges_ToDatabase()
+        {
+            // Arrange
+            var instrument = Instrument.Create("Guitarra Persistente", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            await _adapter.CreateAsync(instrument);
+
+            instrument.Update("Guitarra Modificada", "Nueva descripción", InstrumentType.Stringed);
+
+            // Act
+            _adapter.Update(instrument);
+
+            // Verify persistence
+            var retrievedInstrument = await _adapter.GetByIdAsync(instrument.Id);
+            Assert.NotNull(retrievedInstrument.Result);
+            Assert.Equal("Guitarra Modificada", retrievedInstrument.Result.Name);
+            Assert.Equal("Nueva descripción", retrievedInstrument.Result.Description);
+        }
+
         public void Dispose()
         {
             _context?.Dispose();
