@@ -1,3 +1,5 @@
 5.agregar redis cache
 6.agregar autenticación y autorización
 7.agregar endpoints faltantes con pruebas unitarias e integrales
+8.optimizar use case
+9.revisar rollback con litedb

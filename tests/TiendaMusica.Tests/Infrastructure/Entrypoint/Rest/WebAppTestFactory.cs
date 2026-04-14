@@ -109,7 +109,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
         private async Task<IList<Instrument>> ScopedDatabaseSqlServer()
         {
-            var instruments = SeedDataSqlServer();
+            var instruments = SeedDataMemorySql();
             using (var scope = Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
@@ -133,14 +133,14 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     Description = $"Descripción del instrumento {i}",
                     Type = InstrumentType.Stringed,
                     Price = 100.00m * i,
-                    Stock = i
+                    Stock = 1
                 });
             }
 
             return instruments;
         }
 
-        private IList<Instrument> SeedDataSqlServer()
+        private IList<Instrument> SeedDataMemorySql()
         {
             var instruments = new List<Instrument>();
 
@@ -151,7 +151,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     description: $"Descripción del instrumento {i}",
                     type: InstrumentType.Stringed,
                     price: 100.00m * i,
-                    stock: i
+                    stock: 1
                 );
 
                 instrumentResult.Result.CreationDateUtc = DateTime.UtcNow.AddMinutes(-i);

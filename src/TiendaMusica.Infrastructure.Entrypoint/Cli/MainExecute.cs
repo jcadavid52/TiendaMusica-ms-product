@@ -153,6 +153,10 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
             Console.Write("Stock inicial: ");
             int stock = int.Parse(Console.ReadLine() ?? "0");
 
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✅ Creación en proceso...");
+            Console.ResetColor();
+
             return new InstrumentCreateCliRequest(Name: name,
                             Description: description,
                             Type: instrumentType,

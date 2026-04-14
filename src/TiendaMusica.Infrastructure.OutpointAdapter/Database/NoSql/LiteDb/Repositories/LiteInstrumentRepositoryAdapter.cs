@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LiteDB;
 using System.Linq.Expressions;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -71,6 +72,45 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             return new Results<Instrument?> { Result = instrument };
         }
 
+        public async Task<Results<IList<Instrument>>> GetByIdsAsync(IList<string> instrumentIds)
+        {
+            var collection = _context.InstrumentsCollection;
+            var documents = collection.Find(instrument => instrumentIds.Contains(instrument.Id)).ToList();
+            var instruments = documents.Select(doc => _mapper.Map<Instrument>(doc)).ToList();
+            return new Results<IList<Instrument>> { Result = instruments };
+        }
+
+        public async Task<Results<int>> GetStockByType(InstrumentType type)
+        {
+            var collection = _context.InstrumentsCollection;
+            var documents = collection.Find(instrument => instrument.Type == type).ToList();
+            var currentStock = documents.Sum(instrument => instrument.Stock);
+
+            return new Results<int> { Result = currentStock };
+        }
+
+        public async Task<Results<IList<InstrumentStockSummary>>> GetStockSummaryByInstrumentTypesAsync(IList<string> instrumentIds)
+        {
+            var results = new Results<IList<InstrumentStockSummary>>();
+            var collection = _context.InstrumentsCollection;
+
+            var typesToQuery = collection.Find(x => instrumentIds.Contains(x.Id))
+                                         .Select(x => x.Type)
+                                         .Distinct()
+                                         .ToList();
+
+            var resultado = collection.Find(x => typesToQuery.Contains(x.Type))
+                .GroupBy(i => i.Type)
+                .Select(g => new InstrumentStockSummary(
+                    g.Key,
+                    g.Sum(i => i.Stock)
+                ))
+                .ToList();
+
+            results.Result = resultado;
+            return results;
+        }
+
         public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
         {
 
@@ -89,46 +129,24 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             return new Results<Instrument> { Result = _mapper.Map<Instrument>(doc) };
         }
 
-        public async Task<Results<int>> GetStockByType(InstrumentType type)
-        {
-            var collection = _context.InstrumentsCollection;
-            var documents = collection.Find(instrument => instrument.Type == type).ToList();
-            var currentStock = documents.Sum(instrument => instrument.Stock);
-
-            return new Results<int> { Result = currentStock };
-        }
-
-        public async Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds)
-        {
-            var results = new Results<int>();
-            var collection = _context.InstrumentsCollection;
-            var count = 0;
-            var toDelete = collection.Find(instrument => instrumentIds.Contains(instrument.Id)).ToList();
-
-            if (toDelete.Count != instrumentIds.Distinct().Count())
-            {
-                var idsFounds = toDelete.Select(p => p.Id);
-                var idsMissing = instrumentIds.Except(idsFounds);
-                results.Result = count;
-                return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
-            }
-
-            foreach (var id in instrumentIds)
-            {
-                var deleted = collection.DeleteMany(instrument => instrument.Id == id);
-                count += deleted;
-            }
-
-            results.Result = count;
-            return results;
-        }
-
         public void Update(Instrument instrument)
         {
             var collection = _context.InstrumentsCollection;
             var instrumentDocument = _mapper.Map<InstrumentDocument>(instrument);
 
             collection.Update(instrumentDocument);
+        }
+
+        public void DeleteMultipleAsync(IList<Instrument> instruments)
+        {
+            var collection = _context.InstrumentsCollection;
+
+            var toDelete = _mapper.Map<List<InstrumentDocument>>(instruments);
+
+            foreach (var instrument in toDelete)
+            {
+                collection.DeleteMany(i => i.Id == instrument.Id);
+            }
         }
     }
 }

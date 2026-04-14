@@ -5,7 +5,7 @@ namespace TiendaMusica.Tests.Domain.Services
 {
     public class InstrumentCreateValidationService_UTest
     {
-        private readonly InstrumentCreateValidationService _service = new();
+        private readonly InstrumentValidationService _service = new();
 
         [Fact]
         public void ValidateLimitStockByType_ShouldReturnSuccess_WhenTotalLessThanLimit_Stringed()

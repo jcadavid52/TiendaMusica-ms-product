@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
-using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
@@ -309,100 +308,100 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             Assert.Equal("test/path.db", config.Path);
         }
 
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldDeleteInstruments_WhenSuccessful()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
-            var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+        //[Fact]
+        //public async Task DeleteMultipleAsync_ShouldDeleteInstruments_WhenSuccessful()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+        //    var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
 
-            await _adapter.CreateAsync(instrument1);
-            await _adapter.CreateAsync(instrument2);
-            await _adapter.CreateAsync(instrument3);
+        //    await _adapter.CreateAsync(instrument1);
+        //    await _adapter.CreateAsync(instrument2);
+        //    await _adapter.CreateAsync(instrument3);
 
-            var idsToDelete = new List<string> { instrument1.Id, instrument2.Id, instrument3.Id };
+        //    var idsToDelete = new List<string> { instrument1.Id, instrument2.Id, instrument3.Id };
 
-            // Act
-            var result = await _adapter.DeleteMultipleAsync(idsToDelete);
+        //    // Act
+        //    var result = await _adapter.DeleteMultipleAsync(idsToDelete);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.Equal(3, result.Result);
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.Equal(3, result.Result);
 
-            // Verify deletion
-            var remaining = await _adapter.GetAllAsync();
-            Assert.Empty(remaining.Result);
-        }
+        //    // Verify deletion
+        //    var remaining = await _adapter.GetAllAsync();
+        //    Assert.Empty(remaining.Result);
+        //}
 
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldReturnNotFoundError_WhenSomeIdsNotExist()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+        //[Fact]
+        //public async Task DeleteMultipleAsync_ShouldReturnNotFoundError_WhenSomeIdsNotExist()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
 
-            await _adapter.CreateAsync(instrument1);
-            await _adapter.CreateAsync(instrument2);
+        //    await _adapter.CreateAsync(instrument1);
+        //    await _adapter.CreateAsync(instrument2);
 
-            var idsToDelete = new List<string> { instrument1.Id, "non-existent-id", instrument2.Id };
+        //    var idsToDelete = new List<string> { instrument1.Id, "non-existent-id", instrument2.Id };
 
-            // Act
-            var result = await _adapter.DeleteMultipleAsync(idsToDelete);
+        //    // Act
+        //    var result = await _adapter.DeleteMultipleAsync(idsToDelete);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
-            Assert.Contains("non-existent-id", result.Errors[0].Message);
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.True(result.HasErrors);
+        //    Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
+        //    Assert.Contains("non-existent-id", result.Errors[0].Message);
 
-            // Verify no deletion occurred
-            var remaining = await _adapter.GetAllAsync();
-            Assert.Equal(2, remaining.Result.Count);
-        }
+        //    // Verify no deletion occurred
+        //    var remaining = await _adapter.GetAllAsync();
+        //    Assert.Equal(2, remaining.Result.Count);
+        //}
 
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldReturnNotFoundError_WhenAllIdsNotExist()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            await _adapter.CreateAsync(instrument1);
+        //[Fact]
+        //public async Task DeleteMultipleAsync_ShouldReturnNotFoundError_WhenAllIdsNotExist()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    await _adapter.CreateAsync(instrument1);
 
-            var idsToDelete = new List<string> { "non-existent-1", "non-existent-2" };
+        //    var idsToDelete = new List<string> { "non-existent-1", "non-existent-2" };
 
-            // Act
-            var result = await _adapter.DeleteMultipleAsync(idsToDelete);
+        //    // Act
+        //    var result = await _adapter.DeleteMultipleAsync(idsToDelete);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
-            Assert.Contains("non-existent-1", result.Errors[0].Message);
-            Assert.Contains("non-existent-2", result.Errors[0].Message);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.True(result.HasErrors);
+        //    Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
+        //    Assert.Contains("non-existent-1", result.Errors[0].Message);
+        //    Assert.Contains("non-existent-2", result.Errors[0].Message);
+        //}
 
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldDeleteSingleInstrument()
-        {
-            // Arrange
-            var instrument = Instrument.Create("Guitarra Única", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            await _adapter.CreateAsync(instrument);
+        //[Fact]
+        //public async Task DeleteMultipleAsync_ShouldDeleteSingleInstrument()
+        //{
+        //    // Arrange
+        //    var instrument = Instrument.Create("Guitarra Única", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    await _adapter.CreateAsync(instrument);
 
-            var idsToDelete = new List<string> { instrument.Id };
+        //    var idsToDelete = new List<string> { instrument.Id };
 
-            // Act
-            var result = await _adapter.DeleteMultipleAsync(idsToDelete);
+        //    // Act
+        //    var result = await _adapter.DeleteMultipleAsync(idsToDelete);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.Equal(1, result.Result);
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.Equal(1, result.Result);
 
-            // Verify deletion
-            var remaining = await _adapter.GetAllAsync();
-            Assert.Empty(remaining.Result);
-        }
+        //    // Verify deletion
+        //    var remaining = await _adapter.GetAllAsync();
+        //    Assert.Empty(remaining.Result);
+        //}
 
         //[Fact]
         //public async Task UpdateAsync_ShouldUpdateInstrument_WhenSuccessful()

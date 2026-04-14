@@ -1,4 +1,5 @@
 ﻿using Polly;
+using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 
@@ -9,15 +10,19 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         private readonly IMessagePublisherPort _messagePublisherPort;
         private readonly InstrumentLiteDbContext _context;
         private readonly IAsyncPolicy _circuitBreakerPolicy;
+        private readonly DomainEventsCollector _domainEventsCollector;
 
         public InstrumentLiteDbUnitOfWork(
             IMessagePublisherPort messagePublisherPort,
             InstrumentLiteDbContext context,
-            IAsyncPolicy circuitBreakerPolicy)
+            IAsyncPolicy circuitBreakerPolicy,
+            DomainEventsCollector domainEventsCollector
+            )
         {
             _messagePublisherPort = messagePublisherPort;
             _context = context;
             _circuitBreakerPolicy = circuitBreakerPolicy;
+            _domainEventsCollector = domainEventsCollector;
         }
 
         public async Task<Results<bool>> SaveChangesAsync<TId>(CancellationToken cancellationToken = default)
@@ -28,11 +33,22 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             {
                 try
                 {
+                    var allEvents = new List<object>();
                     var aggregateRoots = _context.GetTrackedEntities<TId>().ToList();
 
                     foreach (var root in aggregateRoots)
                     {
-                        foreach (var @event in root.DomainEvents)
+                        allEvents.AddRange(root.DomainEvents);
+                    }
+
+                    if (_domainEventsCollector.Events.Any())
+                    {
+                        allEvents.AddRange(_domainEventsCollector.Events);
+                    }
+
+                    if (allEvents.Any())
+                    {
+                        foreach (var @event in allEvents)
                         {
                             var publishResult = await _messagePublisherPort.PublishAsync(@event);
 
@@ -43,8 +59,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
                                 return results;
                             }
                         }
-
-                        root.ClearEvents();
                     }
 
                     _context.ClearTracker();

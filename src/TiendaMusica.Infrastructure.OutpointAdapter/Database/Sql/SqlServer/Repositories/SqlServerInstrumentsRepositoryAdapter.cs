@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Polly;
 using System.Linq.Expressions;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -64,13 +65,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             });
         }
 
-        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
-        {
-            await _context.Instruments.AddAsync(instrument);
-
-            return new Results<Instrument> { Result = instrument };
-        }
-
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
@@ -91,6 +85,18 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             });
         }
 
+        public async Task<Results<IList<Instrument>>> GetByIdsAsync(IList<string> instrumentIds)
+        {
+            var results = new Results<IList<Instrument>>();
+
+            var toDelete = await _context.Instruments
+                .Where(i => instrumentIds.Contains(i.Id))
+                .ToListAsync();
+
+            results.Result = toDelete;
+            return results;
+        }
+
         public async Task<Results<int>> GetStockByType(InstrumentType type)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
@@ -102,28 +108,43 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
              });
         }
 
+        public async Task<Results<IList<InstrumentStockSummary>>> GetStockSummaryByInstrumentTypesAsync(IList<string> instrumentIds)
+        {
+            var results = new Results<IList<InstrumentStockSummary>>();
+
+            var resultado = await _context.Instruments
+                .Where(i => _context.Instruments
+                    .Where(sub => instrumentIds.Contains(sub.Id))
+                    .Select(sub => sub.Type)
+                    .Contains(i.Type))
+                .GroupBy(i => i.Type)
+                .Select(g => new InstrumentStockSummary(
+                    g.Key,
+                    g.Sum(i => i.Stock)
+                ))
+                .ToListAsync();
+
+            results.Result = resultado;
+            return results;
+        }
+
+        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
+        {
+            await _context.Instruments.AddAsync(instrument);
+
+            return new Results<Instrument> { Result = instrument };
+        }
+
         public void Update(Instrument instrument)
         {
             _context.Instruments.Update(instrument);
         }
 
-        public async Task<Results<int>> DeleteMultipleAsync(IList<string> instrumentIds)
+        public void DeleteMultipleAsync(IList<Instrument> instruments)
         {
-            var results = new Results<int>();
-            var toDelete = await _context.Instruments
-                .Where(i => instrumentIds.Contains(i.Id))
-                .ToListAsync();
-
-            if (toDelete.Count != instrumentIds.Distinct().Count())
-            {
-                var idsFounds = toDelete.Select(p => p.Id);
-                var idsMissing = instrumentIds.Except(idsFounds);
-                return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
-            }
-
-            _context.Instruments.RemoveRange(toDelete);
-            results.Result = toDelete.Count;
-            return results;
+            _context.Instruments.RemoveRange(instruments);
         }
+
+
     }
 }

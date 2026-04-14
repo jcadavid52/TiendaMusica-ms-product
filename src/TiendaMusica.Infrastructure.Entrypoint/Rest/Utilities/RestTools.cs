@@ -14,7 +14,11 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities
 
             return errors.Select(e => e.ErrorCode == ErrorCode.CONFLICT_ERROR ? (int)HttpStatusCode.Conflict
                 : e.ErrorCode == ErrorCode.VALIDATION_ERROR ? (int)HttpStatusCode.BadRequest
+                : e.ErrorCode == ErrorCode.LIMIT_STOCK_ERROR ? (int)HttpStatusCode.BadRequest
+                : e.ErrorCode == ErrorCode.MINIMUM_STOCK_ERROR ? (int)HttpStatusCode.BadRequest
                 : e.ErrorCode == ErrorCode.NOT_FOUND ? (int)HttpStatusCode.NotFound
+                : e.ErrorCode == ErrorCode.PUBLISH_MESSAGE_ERROR ? (int)HttpStatusCode.InternalServerError
+                : e.ErrorCode == ErrorCode.DATABASE_ERROR ? (int)HttpStatusCode.InternalServerError
                 : (int)HttpStatusCode.InternalServerError).First();
         }
     }

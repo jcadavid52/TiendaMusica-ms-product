@@ -3,23 +3,21 @@ using TiendaMusica.Domain.Models;
 
 namespace TiendaMusica.Domain.Events
 {
-    public class InstrumentCreatedEvent : IDomainEvent
+    public class InstrumentDeletedMassiveEvent : IDomainEvent
     {
-        public InstrumentCreatedEvent(Instrument instrument)
+        public InstrumentDeletedMassiveEvent(IEnumerable<Instrument> instruments)
         {
-            Product = new InstrumentDto(
+            Products = instruments.Select(instrument => new InstrumentDto(
                 instrument.Id,
                 instrument.Name,
                 instrument.Description,
                 instrument.Price,
                 instrument.Stock
-            );
+            )).ToList();
         }
 
         public Guid EventId { get; } = Guid.NewGuid();
-
         public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
-        public InstrumentDto Product { get; }
+        public IEnumerable<InstrumentDto> Products { get; }
     }
 }

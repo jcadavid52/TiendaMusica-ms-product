@@ -7,6 +7,8 @@
         VALIDATION_ERROR,
         NOT_FOUND,
         PUBLISH_MESSAGE_ERROR,
-        DATABASE_ERROR
+        DATABASE_ERROR,
+        LIMIT_STOCK_ERROR,
+        MINIMUM_STOCK_ERROR
     }
 }

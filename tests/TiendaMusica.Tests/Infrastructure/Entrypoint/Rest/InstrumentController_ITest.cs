@@ -361,7 +361,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
         public async Task DeleteMultipleAsync_WhenInstrumentsExist_ShouldReturnSuccessResultStatus200()
         {
             // Arrange
-            var idsToDelete = new List<string> 
+            var idsToDelete = new List<string>
             {
                 _instruments[9].Id,
                 _instruments[8].Id,

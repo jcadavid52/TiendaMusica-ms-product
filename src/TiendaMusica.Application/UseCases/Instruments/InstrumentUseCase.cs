@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Enums;
+using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -12,23 +13,23 @@ namespace TiendaMusica.Application.UseCases.Instruments
     public class InstrumentUseCase : IInstrumentUseCase
     {
         private readonly IInstrumentsRepositoryPort _instrumentsRepositoryPorts;
-        private readonly IInstrumentCreateValidationService _instrumentCreateValidationService;
+        private readonly IInstrumentValidationService _instrumentValidationService;
         private readonly ILogger<InstrumentUseCase> _logger;
-        private readonly IMessagePublisherPort _messagePublisher;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly DomainEventsCollector _events;
         public InstrumentUseCase(
             IInstrumentsRepositoryPort instrumentsRepositoryPorts,
-            IInstrumentCreateValidationService instrumentCreateValidationService,
+            IInstrumentValidationService instrumentValidationService,
             ILogger<InstrumentUseCase> logger,
-            IMessagePublisherPort messagePublisher,
-            IUnitOfWork unitOfWork
+            IUnitOfWork unitOfWork,
+            DomainEventsCollector events
             )
         {
             _instrumentsRepositoryPorts = instrumentsRepositoryPorts;
-            _instrumentCreateValidationService = instrumentCreateValidationService;
+            _instrumentValidationService = instrumentValidationService;
             _logger = logger;
-            _messagePublisher = messagePublisher;
             _unitOfWork = unitOfWork;
+            _events = events;
         }
         public async Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQuery? query = null)
         {
@@ -121,7 +122,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     return results.AddErrors(currentLimitStockResult.Errors);
                 }
 
-                var validation = _instrumentCreateValidationService.ValidateLimitStockByType(instrumentCommand.Stock, currentLimitStockResult.Result, instrumentCommand.Type);
+                var validation = _instrumentValidationService.ValidateLimitStockByType(instrumentCommand.Stock, currentLimitStockResult.Result, instrumentCommand.Type);
                 if (!validation.IsSuccess && validation.HasErrors)
                 {
                     _logger.LogWarning("Error validación de stock por tipo '{Type}':{Errors}", instrumentCommand.Type, validation.Errors);
@@ -200,13 +201,43 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 return results.AddError(ErrorCode.VALIDATION_ERROR, "Se encontraron IDs vacíos o inválidos");
             }
 
-            var result = await _instrumentsRepositoryPorts.DeleteMultipleAsync(command.InstrumentIds);
+            var toDelete = await _instrumentsRepositoryPorts.GetByIdsAsync(command.InstrumentIds);
 
-            if (result.HasErrors)
+            if (toDelete.HasErrors)
             {
-                _logger.LogWarning("Se encontraron errores llamando al repositorio para eliminar múltiples instrumentos: {Errors}", result.Errors);
-                return results.AddErrors(result.Errors);
+                _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para obtener instrumentos por IDs:{Errors}", toDelete.Errors);
+                return results.AddErrors(toDelete.Errors);
             }
+
+            if (toDelete.Result.Count != command.InstrumentIds.Distinct().Count())
+            {
+                _logger.LogWarning("No se encontraron todos los instrumentos para eliminar. IDs solicitados: {RequestedIds}, IDs encontrados: {FoundIds}", string.Join(", ", command.InstrumentIds), string.Join(", ", toDelete.Result.Select(p => p.Id)));
+                var idsFounds = toDelete.Result.Select(p => p.Id);
+                var idsMissing = command.InstrumentIds.Except(idsFounds);
+                return results.AddError(ErrorCode.NOT_FOUND, $"No se encontraron los registros con IDs: {string.Join(", ", idsMissing)}");
+            }
+
+            var resultStockSummaries = await _instrumentsRepositoryPorts.GetStockSummaryByInstrumentTypesAsync(command.InstrumentIds);
+
+            if (resultStockSummaries.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores llamando al respositorio sql server para obtener el resumen de stock por tipos de instrumentos:{Errors}", resultStockSummaries.Errors);
+                return results.AddErrors(resultStockSummaries.Errors);
+            }
+
+            var resultValidate = _instrumentValidationService.ValidateStockAfterDeletion(resultStockSummaries.Result, toDelete.Result);
+
+            if (resultValidate.HasErrors)
+            {
+                _logger.LogWarning("Error validación de stock antes de eliminación masiva: {Errors}", resultValidate.Errors);
+                return results.AddErrors(resultValidate.Errors);
+            }
+
+            _logger.LogInformation("Iniciando eliminación masiva en el repositorio");
+            _instrumentsRepositoryPorts.DeleteMultipleAsync(toDelete.Result);
+
+            _logger.LogInformation("Agregando evento de eliminación masiva de instrumentos");
+            _events.AddEvent(new InstrumentDeletedMassiveEvent(toDelete.Result));
 
             var saveChangesResult = await _unitOfWork.SaveChangesAsync<string>();
 
@@ -216,8 +247,10 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 return results.AddErrors(saveChangesResult.Errors);
             }
 
-            _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", result.Result);
-            results.Result = result.Result;
+
+
+            _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", toDelete.Result.Count);
+            results.Result = toDelete.Result.Count;
             return results;
         }
 
@@ -267,7 +300,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     return results.AddErrors(currentLimitStockResult.Errors);
                 }
 
-                var validation = _instrumentCreateValidationService.ValidateLimitStockByType(existingInstrumentResult.Result.Stock, currentLimitStockResult.Result, command.Type);
+                var validation = _instrumentValidationService.ValidateLimitStockByType(existingInstrumentResult.Result.Stock, currentLimitStockResult.Result, command.Type);
                 if (!validation.IsSuccess && validation.HasErrors)
                 {
                     _logger.LogWarning("Error validación de stock por tipo '{Type}':{Errors}", command.Type, validation.Errors);
