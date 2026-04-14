@@ -85,6 +85,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
         [ProducesResponseType(typeof(Results<>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetByIdAsync([FromRoute] string id)
         {
+            //refactorizar
             _logger.LogInformation("(endpoint api rest) - Iniciando proceso para obtener instrumento por ID: {InstrumentId}", id);
             var response = new Results<InstrumentResponse>();
             var instrument = await _instrumentUseCase.GetByIdAsync(id);
@@ -93,11 +94,6 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Controllers
             {
                 response.AddErrors(instrument.Errors);
                 _logger.LogWarning("(endpoint api rest) - Se encontraron errores al obtener el instrumento por ID llamando al caso de uso: {Errors}", instrument.Errors);
-            }
-            else if (instrument.Result == null)
-            {
-                response.AddError(ErrorCode.NOT_FOUND, $"Instrumento no encontrado con ID: {id}");
-                _logger.LogWarning("(endpoint api rest) - Instrumento no encontrado con ID: {InstrumentId}", id);
             }
             else
             {

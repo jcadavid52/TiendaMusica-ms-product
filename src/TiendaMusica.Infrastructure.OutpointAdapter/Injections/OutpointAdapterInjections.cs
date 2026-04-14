@@ -4,11 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 using System.Reflection;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapters;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories;
 using TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq;
@@ -21,6 +24,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
         {
             AddPollyInjections(services, configuration);
             AddRabbitMqInjections(services, configuration);
+            ConfigureRedisCache(services, configuration);
 
             if (currentEnvironment == "Development")
             {
@@ -69,6 +73,22 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
             });
 
             services.AddScoped<IInstrumentsRepositoryPort, SqlServerInstrumentsRepositoryAdapter>();
+        }
+
+        private static void ConfigureRedisCache(IServiceCollection services, IConfiguration configuration)
+        {
+            var redisConfig = configuration.GetSection("Redis").Get<RedisConfig>() ?? throw new ArgumentNullException("Error al obtener la configuración de Redis");
+            services.Configure<RedisConfig>(configuration.GetSection("Redis"));
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConfig.ConnectionString;
+                options.InstanceName = "MyApp_";
+            });
+
+            var redisConnection = ConnectionMultiplexer.Connect(redisConfig.ConnectionString);
+            services.AddSingleton<IConnectionMultiplexer>(redisConnection);
+            services.AddScoped<ICachePort, RedisCacheAdapter>();
         }
 
         public static void AddPollyInjections(this IServiceCollection services, IConfiguration configuration)

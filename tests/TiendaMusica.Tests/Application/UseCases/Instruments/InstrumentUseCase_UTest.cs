@@ -3,29 +3,35 @@ using Moq;
 using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
+using TiendaMusica.Application.Validators.Instruments;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
-using TiendaMusica.Domain.Services;
 
 namespace TiendaMusica.Tests.Application.UseCases.Instruments
 {
     public class InstrumentUseCase_UTest
     {
         private readonly Mock<IInstrumentsRepositoryPort> _instrumentsRepositoryPortMock;
-        private readonly Mock<IInstrumentValidationService> _instrumentCreateValidationService;
         private readonly Mock<ILogger<InstrumentUseCase>> _loggerMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<DomainEventsCollector> _domainEventsCollectorMock;
+        private readonly Mock<ICachePort> _cachePortMock;
+        private readonly Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>> _updateValidatorMock;
+        private readonly Mock<IInstrumentValidator<InstrumentCreateCommand, bool>> _createValidatorMock;
+        private readonly Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>> _deleteMassiveValidatorMock;
 
         public InstrumentUseCase_UTest()
         {
             _instrumentsRepositoryPortMock = new Mock<IInstrumentsRepositoryPort>();
-            _instrumentCreateValidationService = new Mock<IInstrumentValidationService>();
             _loggerMock = new Mock<ILogger<InstrumentUseCase>>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _domainEventsCollectorMock = new Mock<DomainEventsCollector>();
+            _cachePortMock = new Mock<ICachePort>();
+            _updateValidatorMock = new Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>>();
+            _createValidatorMock = new Mock<IInstrumentValidator<InstrumentCreateCommand, bool>>();
+            _deleteMassiveValidatorMock = new Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>>();
         }
 
         [Fact]
@@ -50,10 +56,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -90,10 +99,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -133,10 +145,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -172,10 +187,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -196,9 +214,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = 10 });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, 10, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -207,10 +222,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
@@ -244,10 +262,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -268,21 +289,15 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = currenStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currenStock, createCommand.Type))
-                .Returns(new Results<bool>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
-                    }
-                });
-
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -302,18 +317,18 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument?> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             // Act
@@ -333,9 +348,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = currentSock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentSock, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument?>
                 {
@@ -347,10 +359,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -371,9 +386,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -388,10 +400,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -412,9 +427,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
                 .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(createCommand.Stock, currentStock, createCommand.Type))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
                 .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -423,10 +435,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -449,9 +464,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
                 .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -469,10 +481,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                 _instrumentsRepositoryPortMock.Object,
-                _instrumentCreateValidationService.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
+                _domainEventsCollectorMock.Object,
+                _cachePortMock.Object
                 );
 
             var result = await useCase.CreateAsync(createCommand);
@@ -492,9 +507,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
                 .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -509,10 +521,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             await Assert.ThrowsAsync<Exception>(() => useCase.CreateAsync(createCommand));
@@ -529,10 +544,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -555,10 +573,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
             );
 
             // Act
@@ -588,10 +609,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -647,10 +671,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -671,10 +698,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -732,9 +762,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
               .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -749,10 +776,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -773,10 +803,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -804,10 +837,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -840,10 +876,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
                _instrumentsRepositoryPortMock.Object,
-               _instrumentCreateValidationService.Object,
+               _updateValidatorMock.Object,
+               _createValidatorMock.Object,
+               _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
+               _domainEventsCollectorMock.Object,
+               _cachePortMock.Object
                );
 
             // Act
@@ -866,9 +905,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
               .ReturnsAsync(new Results<int> { Result = currentStock });
 
-            _instrumentCreateValidationService.Setup(service => service.ValidateLimitStockByType(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<InstrumentType>()))
-                .Returns(new Results<bool> { Result = true });
-
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
                .ReturnsAsync(new Results<Instrument?> { Result = null });
 
@@ -887,10 +923,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
 
             var useCase = new InstrumentUseCase(
               _instrumentsRepositoryPortMock.Object,
-              _instrumentCreateValidationService.Object,
+              _updateValidatorMock.Object,
+              _createValidatorMock.Object,
+              _deleteMassiveValidatorMock.Object,
               _loggerMock.Object,
               _unitOfWorkMock.Object,
-              _domainEventsCollectorMock.Object
+              _domainEventsCollectorMock.Object,
+              _cachePortMock.Object
               );
 
             // Act

@@ -1,4 +1,5 @@
-﻿using TiendaMusica.Domain.Enums;
+﻿using System.Text.Json.Serialization;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models.Result;
 namespace TiendaMusica.Domain.Models
@@ -13,6 +14,7 @@ namespace TiendaMusica.Domain.Models
 
         private const decimal ShippingCost = 100;
 
+        [JsonConstructor]
         private Instrument(
             string name,
             string description,
