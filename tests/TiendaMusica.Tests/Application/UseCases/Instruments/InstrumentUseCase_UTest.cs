@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
-using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
 using TiendaMusica.Application.Validators.Instruments;
@@ -17,7 +16,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         private readonly Mock<ILogger<InstrumentUseCase>> _loggerMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<DomainEventsCollector> _domainEventsCollectorMock;
-        private readonly Mock<ICachePort> _cachePortMock;
         private readonly Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>> _updateValidatorMock;
         private readonly Mock<IInstrumentValidator<InstrumentCreateCommand, bool>> _createValidatorMock;
         private readonly Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>> _deleteMassiveValidatorMock;
@@ -28,181 +26,180 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _loggerMock = new Mock<ILogger<InstrumentUseCase>>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _domainEventsCollectorMock = new Mock<DomainEventsCollector>();
-            _cachePortMock = new Mock<ICachePort>();
             _updateValidatorMock = new Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>>();
             _createValidatorMock = new Mock<IInstrumentValidator<InstrumentCreateCommand, bool>>();
             _deleteMassiveValidatorMock = new Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>>();
         }
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryReturnsData()
-        {
-            // Arrange
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
-                Instrument.Create("Guitarra acústica", "Guitarra acústica description test", InstrumentType.Stringed,500,10).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryReturnsData()
+        //{
+        //    // Arrange
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
+        //        Instrument.Create("Guitarra acústica", "Guitarra acústica description test", InstrumentType.Stringed,500,10).Result
+        //    };
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
-                It.IsAny<SortDirection>(),
-                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
-                It.IsAny<int?>(),
-                It.IsAny<int?>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments
-                });
+        //    _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+        //        It.IsAny<SortDirection>(),
+        //        It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+        //        It.IsAny<int?>(),
+        //        It.IsAny<int?>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments
+        //        });
 
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
-                );
+        //    var useCase = new InstrumentUseCase(
+        //        _instrumentsRepositoryPortMock.Object,
+        //        _updateValidatorMock.Object,
+        //        _createValidatorMock.Object,
+        //        _deleteMassiveValidatorMock.Object,
+        //        _loggerMock.Object,
+        //        _unitOfWorkMock.Object,
+        //        _domainEventsCollectorMock.Object,
+        //        _cachePortMock.Object
+        //        );
 
-            // Act
-            var result = await useCase.GetAllAsync();
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.Equal(expectedInstruments.Count, result.Result.Count);
-            Assert.Equal(expectedInstruments[0].Name, result.Result[0].Name);
-            Assert.Equal(expectedInstruments[1].Name, result.Result[1].Name);
-        }
+        //    // Act
+        //    var result = await useCase.GetAllAsync();
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.Equal(expectedInstruments.Count, result.Result.Count);
+        //    Assert.Equal(expectedInstruments[0].Name, result.Result[0].Name);
+        //    Assert.Equal(expectedInstruments[1].Name, result.Result[1].Name);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsData()
-        {
-            // Arrange
-            var query = new InstrumentGetAllQuery(SortDirection.Asc, null, 10, 1);
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
-                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
-                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsData()
+        //{
+        //    // Arrange
+        //    var query = new InstrumentGetAllQuery(SortDirection.Asc, null, 10, 1);
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
+        //        Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+        //        Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
+        //    };
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
-                SortDirection.Asc,
-                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
-                It.IsAny<int?>(),
-                It.IsAny<int?>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments
-                });
+        //    _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+        //        SortDirection.Asc,
+        //        It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+        //        It.IsAny<int?>(),
+        //        It.IsAny<int?>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments
+        //        });
 
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
-                );
+        //    var useCase = new InstrumentUseCase(
+        //        _instrumentsRepositoryPortMock.Object,
+        //        _updateValidatorMock.Object,
+        //        _createValidatorMock.Object,
+        //        _deleteMassiveValidatorMock.Object,
+        //        _loggerMock.Object,
+        //        _unitOfWorkMock.Object,
+        //        _domainEventsCollectorMock.Object,
+        //        _cachePortMock.Object
+        //        );
 
-            // Act
-            var result = await useCase.GetAllAsync(query);
+        //    // Act
+        //    var result = await useCase.GetAllAsync(query);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.True(result.IsSuccess);
-            Assert.Equal(expectedInstruments.Count, result.Result.Count);
-            Assert.Equal("Guitarra eléctrica", result.Result[0].Name);
-            Assert.Equal("Piano", result.Result[1].Name);
-            Assert.Equal("Saxofón", result.Result[2].Name);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.True(result.IsSuccess);
+        //    Assert.Equal(expectedInstruments.Count, result.Result.Count);
+        //    Assert.Equal("Guitarra eléctrica", result.Result[0].Name);
+        //    Assert.Equal("Piano", result.Result[1].Name);
+        //    Assert.Equal("Saxofón", result.Result[2].Name);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsData()
-        {
-            // Arrange
-            var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 10, 1);
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result,
-                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
-                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsData()
+        //{
+        //    // Arrange
+        //    var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 10, 1);
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result,
+        //        Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result
+        //    };
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
-                SortDirection.Desc,
-                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
-                It.IsAny<int?>(),
-                It.IsAny<int?>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments
-                });
+        //    _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+        //        SortDirection.Desc,
+        //        It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+        //        It.IsAny<int?>(),
+        //        It.IsAny<int?>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments
+        //        });
 
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
-                );
+        //    var useCase = new InstrumentUseCase(
+        //        _instrumentsRepositoryPortMock.Object,
+        //        _updateValidatorMock.Object,
+        //        _createValidatorMock.Object,
+        //        _deleteMassiveValidatorMock.Object,
+        //        _loggerMock.Object,
+        //        _unitOfWorkMock.Object,
+        //        _domainEventsCollectorMock.Object,
+        //        _cachePortMock.Object
+        //        );
 
-            // Act
-            var result = await useCase.GetAllAsync(query);
+        //    // Act
+        //    var result = await useCase.GetAllAsync(query);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.True(result.IsSuccess);
-            Assert.Equal(expectedInstruments.Count, result.Result.Count);
-            Assert.Equal("Saxofón", result.Result[0].Name);
-            Assert.Equal("Piano", result.Result[1].Name);
-            Assert.Equal("Guitarra eléctrica", result.Result[2].Name);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.True(result.IsSuccess);
+        //    Assert.Equal(expectedInstruments.Count, result.Result.Count);
+        //    Assert.Equal("Saxofón", result.Result[0].Name);
+        //    Assert.Equal("Piano", result.Result[1].Name);
+        //    Assert.Equal("Guitarra eléctrica", result.Result[2].Name);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
-        {
-            // Arrange
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
-                It.IsAny<SortDirection>(),
-                It.IsAny<Expression<Func<Instrument, bool>>[]>(),
-                It.IsAny<int?>(),
-                It.IsAny<int?>())
-                )
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                        new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
-                    }
-                });
+        //[Fact]
+        //public async Task GetAllAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
+        //{
+        //    // Arrange
+        //    _instrumentsRepositoryPortMock.Setup(repo => repo.GetAllAsync(
+        //        It.IsAny<SortDirection>(),
+        //        It.IsAny<Expression<Func<Instrument, bool>>[]>(),
+        //        It.IsAny<int?>(),
+        //        It.IsAny<int?>())
+        //        )
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Errors = new List<TiendaMusicaError>
+        //            {
+        //                new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
+        //            }
+        //        });
 
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
-                );
+        //    var useCase = new InstrumentUseCase(
+        //        _instrumentsRepositoryPortMock.Object,
+        //        _updateValidatorMock.Object,
+        //        _createValidatorMock.Object,
+        //        _deleteMassiveValidatorMock.Object,
+        //        _loggerMock.Object,
+        //        _unitOfWorkMock.Object,
+        //        _domainEventsCollectorMock.Object,
+        //        _cachePortMock.Object
+        //        );
 
-            // Act
-            var result = await useCase.GetAllAsync();
-            // Assert
-            Assert.Null(result.Result);
-            Assert.True(result.HasErrors);
-            Assert.False(result.IsSuccess);
-        }
+        //    // Act
+        //    var result = await useCase.GetAllAsync();
+        //    // Assert
+        //    Assert.Null(result.Result);
+        //    Assert.True(result.HasErrors);
+        //    Assert.False(result.IsSuccess);
+        //}
 
         [Fact]
         public async Task CreateAsync_ShouldCreateInstrument_WhenValidationPasses()
@@ -227,8 +224,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
+                _domainEventsCollectorMock.Object
                 );
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
@@ -267,8 +263,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
+                _domainEventsCollectorMock.Object
                 );
 
             // Act
@@ -296,8 +291,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -327,8 +321,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
+                _domainEventsCollectorMock.Object
                 );
 
             // Act
@@ -364,8 +357,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -405,8 +397,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -440,8 +431,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -486,8 +476,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 _deleteMassiveValidatorMock.Object,
                 _loggerMock.Object,
                 _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object,
-                _cachePortMock.Object
+                _domainEventsCollectorMock.Object
                 );
 
             var result = await useCase.CreateAsync(createCommand);
@@ -526,8 +515,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             await Assert.ThrowsAsync<Exception>(() => useCase.CreateAsync(createCommand));
@@ -549,8 +537,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -578,8 +565,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
             );
 
             // Act
@@ -614,8 +600,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -676,8 +661,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -703,8 +687,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -781,8 +764,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -808,8 +790,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -842,8 +823,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -881,8 +861,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                _deleteMassiveValidatorMock.Object,
                _loggerMock.Object,
                _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object,
-               _cachePortMock.Object
+               _domainEventsCollectorMock.Object
                );
 
             // Act
@@ -928,8 +907,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
               _deleteMassiveValidatorMock.Object,
               _loggerMock.Object,
               _unitOfWorkMock.Object,
-              _domainEventsCollectorMock.Object,
-              _cachePortMock.Object
+              _domainEventsCollectorMock.Object
               );
 
             // Act

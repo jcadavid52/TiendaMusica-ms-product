@@ -2,6 +2,7 @@
 using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Application.Dtos;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Commands;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
@@ -238,7 +239,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
             );
         }
 
-        private static InstrumentGetAllQuery? BuildGetAllQuery()
+        private static InstrumentGetAllQueryParametersDto? BuildGetAllQuery()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -268,11 +269,20 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
                     pageNumberInput = "1";
                 }
 
+                Console.WriteLine("Ordernar por");
+                string? orderBy = Console.ReadLine();
+
+                if (!string.IsNullOrWhiteSpace(orderBy))
+                {
+                    orderBy = "creationdateutc";
+                }
+
                 Console.ResetColor();
 
-                return new InstrumentGetAllQuery(
-                    PageSize: int.Parse(pageSizeInput),
+                return new InstrumentGetAllQueryParametersDto(
                     Search: search,
+                    orderBy,
+                    PageSize: int.Parse(pageSizeInput),
                     PageNumber: int.Parse(pageNumberInput)
                     );
             }

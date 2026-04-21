@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos;
 using TiendaMusica.Utilities;
 
@@ -27,7 +28,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Commands
             _tools = tools;
         }
 
-        public async Task GetAllAsync(InstrumentGetAllQuery? query = null)
+        public async Task GetAllAsync(InstrumentGetAllQueryParametersDto? query)
         {
             try
             {

@@ -1,11 +1,13 @@
-﻿namespace TiendaMusica.Domain.Ports
+﻿using TiendaMusica.Domain.Models.Result;
+
+namespace TiendaMusica.Domain.Ports
 {
     public interface ICachePort
     {
-        Task<T?> GetAsync<T>(string key) where T : class;
-        Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class;
-        Task RemoveAsync(string key);
+        Task<Results<T?>> GetAsync<T>(string key) where T : class;
+        Task<Results<bool>> SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class;
+        Task<Results<bool>> RemoveAsync(string key);
         Task<bool> ExistsAsync(string key);
-        Task RemoveByPatternAsync(string pattern);
+        Task<Results<bool>> RemoveByPatternAsync(string pattern);
     }
 }

@@ -21,39 +21,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             _context = context;
         }
 
-        public async Task<Results<IList<Instrument>>> GetAllAsync(
-            SortDirection sortDirection = SortDirection.Desc,
-            Expression<Func<Instrument, bool>>[]? filters = null,
-            int? skip = null,
-            int? take = null
-            )
-        {
-            var collection = _context.InstrumentsCollection;
-            var query = collection.FindAll();
-            var domainItems = query.Select(x => _mapper.Map<Instrument>(x));
-
-            if (filters != null)
-            {
-                foreach (var filter in filters)
-                {
-                    domainItems = domainItems.Where(filter.Compile());
-                }
-            }
-
-            if (sortDirection == SortDirection.Desc)
-                domainItems = domainItems.OrderByDescending(x => x.CreationDateUtc);
-            else
-                domainItems = domainItems.OrderBy(x => x.CreationDateUtc);
-
-            if (skip.HasValue)
-                domainItems = domainItems.Skip(skip.Value);
-
-            if (take.HasValue)
-                domainItems = domainItems.Take(take.Value);
-
-            return new Results<IList<Instrument>> { Result = domainItems.ToList() };
-        }
-
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
         {
             var collection = _context.InstrumentsCollection;
@@ -137,7 +104,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             collection.Update(instrumentDocument);
         }
 
-        public void DeleteMultipleAsync(IList<Instrument> instruments)
+        public void DeleteMultiple(IList<Instrument> instruments)
         {
             var collection = _context.InstrumentsCollection;
 
@@ -147,6 +114,46 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             {
                 collection.DeleteMany(i => i.Id == instrument.Id);
             }
+        }
+
+        public Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQueryParametersDto? queryParameters)
+        {
+            var results = new Results<IList<Instrument>>();
+            var query = _context.InstrumentsCollection.FindAll();
+            var domainItems = query.Select(x => _mapper.Map<Instrument>(x));
+
+            if(queryParameters == null)
+            {
+                results.Result = domainItems.ToList();
+                return Task.FromResult(results);
+            }
+
+            if (queryParameters.PageNumber > 0 && queryParameters.PageSize > 0)
+            {
+                var skip = (queryParameters.PageNumber.Value - 1) * queryParameters.PageSize.Value;
+                domainItems = domainItems.Skip(skip).Take(queryParameters.PageSize.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParameters.Search))
+            {
+                domainItems = domainItems.Where(i => i.Name.Contains(queryParameters.Search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParameters.OrderBy))
+            {
+                domainItems = queryParameters.OrderBy.ToLower() switch
+                {
+                    "name" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Name) : domainItems.OrderByDescending(i => i.Name),
+                    "price" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Price) : domainItems.OrderByDescending(i => i.Price),
+                    "stock" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Stock) : domainItems.OrderByDescending(i => i.Stock),
+                    "type" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Type) : domainItems.OrderByDescending(i => i.Type),
+                    "creationdateutc" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.CreationDateUtc) : domainItems.OrderByDescending(i => i.CreationDateUtc),
+                    _ => domainItems.OrderBy(i => i.Id)
+                };
+            }
+
+            results.Result = domainItems.ToList();
+            return Task.FromResult(results);
         }
     }
 }

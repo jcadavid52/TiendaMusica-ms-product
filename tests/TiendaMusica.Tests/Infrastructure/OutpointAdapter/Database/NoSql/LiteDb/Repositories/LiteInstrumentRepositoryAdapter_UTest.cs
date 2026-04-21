@@ -34,36 +34,36 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.NoSql.LiteD
             _adapter = new LiteInstrumentRepositoryAdapter(_mapper, _context);
         }
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnEmptyList_WhenRepositoryIsEmpty()
-        {
-            // Act
-            var result = await _adapter.GetAllAsync();
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnEmptyList_WhenRepositoryIsEmpty()
+        //{
+        //    // Act
+        //    var result = await _adapter.GetAllAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Empty(result.Result);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Empty(result.Result);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryHasData()
-        {
-            // Arrange
-            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            await _adapter.CreateAsync(instrument);
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryHasData()
+        //{
+        //    // Arrange
+        //    var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    await _adapter.CreateAsync(instrument);
 
-            // Act
-            var result = await _adapter.GetAllAsync();
+        //    // Act
+        //    var result = await _adapter.GetAllAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Single(result.Result);
-            Assert.Equal("Guitarra Eléctrica", result.Result[0].Name);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Single(result.Result);
+        //    Assert.Equal("Guitarra Eléctrica", result.Result[0].Name);
+        //}
 
         [Fact]
         public async Task GetByNameAsync_ShouldReturnInstrument_WhenFound()

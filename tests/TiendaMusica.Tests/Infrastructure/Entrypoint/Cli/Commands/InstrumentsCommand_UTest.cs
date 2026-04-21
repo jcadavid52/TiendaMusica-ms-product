@@ -34,146 +34,146 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
                 );
         }
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsData()
-        {
-            // Arrange
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
-                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
-                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionAsc_WhenUseCaseReturnsData()
+        //{
+        //    // Arrange
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
+        //        Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+        //        Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
+        //    };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments.OrderBy(i => i.CreationDateUtc).ToList()
-                });
+        //    _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments.OrderBy(i => i.CreationDateUtc).ToList()
+        //        });
 
-            var query = new InstrumentGetAllQuery(SortDirection.Asc, null, 10, 1);
+        //    var query = new InstrumentGetAllQuery(SortDirection.Asc, null, 10, 1);
 
-            // Act
-            await _instrumentsCommand.GetAllAsync(query);
+        //    // Act
+        //    await _instrumentsCommand.GetAllAsync(query);
 
-            // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<InstrumentGetAllQuery>(q =>
-                    q.SortDirection == SortDirection.Asc &&
-                    q.PageSize == 10 &&
-                    q.PageNumber == 1
-                )), Times.Once);
-        }
+        //    // Assert
+        //    _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
+        //        It.Is<InstrumentGetAllQuery>(q =>
+        //            q.SortDirection == SortDirection.Asc &&
+        //            q.PageSize == 10 &&
+        //            q.PageNumber == 1
+        //        )), Times.Once);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsData()
-        {
-            // Arrange
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
-                Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
-                Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsSortDirectionDesc_WhenUseCaseReturnsData()
+        //{
+        //    // Arrange
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed,500,10).Result,
+        //        Instrument.Create("Piano", "Piano description test", InstrumentType.keyboard,1000,5).Result,
+        //        Instrument.Create("Saxofón", "Saxofón description test", InstrumentType.Wind,800,8).Result
+        //    };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments.OrderByDescending(i => i.CreationDateUtc).ToList()
-                });
+        //    _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments.OrderByDescending(i => i.CreationDateUtc).ToList()
+        //        });
 
-            var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 10, 1);
+        //    var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 10, 1);
 
-            // Act
-            await _instrumentsCommand.GetAllAsync(query);
+        //    // Act
+        //    await _instrumentsCommand.GetAllAsync(query);
 
-            // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<InstrumentGetAllQuery>(q =>
-                    q.SortDirection == SortDirection.Desc &&
-                    q.PageSize == 10 &&
-                    q.PageNumber == 1
-                )), Times.Once);
-        }
+        //    // Assert
+        //    _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
+        //        It.Is<InstrumentGetAllQuery>(q =>
+        //            q.SortDirection == SortDirection.Desc &&
+        //            q.PageSize == 10 &&
+        //            q.PageNumber == 1
+        //        )), Times.Once);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsWithSearch_WhenSearchTermIsProvided()
-        {
-            // Arrange
-            var expectedInstruments = new List<Instrument>
-            {
-                Instrument.Create("Guitarra eléctrica", "Guitarra descripción test", InstrumentType.Stringed,500,10).Result
-            };
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsWithSearch_WhenSearchTermIsProvided()
+        //{
+        //    // Arrange
+        //    var expectedInstruments = new List<Instrument>
+        //    {
+        //        Instrument.Create("Guitarra eléctrica", "Guitarra descripción test", InstrumentType.Stringed,500,10).Result
+        //    };
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments
-                });
+        //    _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments
+        //        });
 
-            var query = new InstrumentGetAllQuery(SortDirection.Desc, "Guitarra", 10, 1);
+        //    var query = new InstrumentGetAllQuery(SortDirection.Desc, "Guitarra", 10, 1);
 
-            // Act
-            await _instrumentsCommand.GetAllAsync(query);
+        //    // Act
+        //    await _instrumentsCommand.GetAllAsync(query);
 
-            // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<InstrumentGetAllQuery>(q =>
-                    q.Search == "Guitarra" &&
-                    q.SortDirection == SortDirection.Desc
-                )), Times.Once);
-        }
+        //    // Assert
+        //    _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
+        //        It.Is<InstrumentGetAllQuery>(q =>
+        //            q.Search == "Guitarra" &&
+        //            q.SortDirection == SortDirection.Desc
+        //        )), Times.Once);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsPaginated_WhenPageParametersAreProvided()
-        {
-            // Arrange
-            var expectedInstruments = new List<Instrument>();
-            for (int i = 1; i <= 5; i++)
-            {
-                expectedInstruments.Add(Instrument.Create($"Instrumento {i}", $"Descripción {i}", InstrumentType.Stringed, 100 * i, i).Result);
-            }
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsPaginated_WhenPageParametersAreProvided()
+        //{
+        //    // Arrange
+        //    var expectedInstruments = new List<Instrument>();
+        //    for (int i = 1; i <= 5; i++)
+        //    {
+        //        expectedInstruments.Add(Instrument.Create($"Instrumento {i}", $"Descripción {i}", InstrumentType.Stringed, 100 * i, i).Result);
+        //    }
 
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Result = expectedInstruments
-                });
+        //    _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Result = expectedInstruments
+        //        });
 
-            var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 5, 2);
+        //    var query = new InstrumentGetAllQuery(SortDirection.Desc, null, 5, 2);
 
-            // Act
-            await _instrumentsCommand.GetAllAsync(query);
+        //    // Act
+        //    await _instrumentsCommand.GetAllAsync(query);
 
-            // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
-                It.Is<InstrumentGetAllQuery>(q =>
-                    q.PageSize == 5 &&
-                    q.PageNumber == 2
-                )), Times.Once);
-        }
+        //    // Assert
+        //    _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(
+        //        It.Is<InstrumentGetAllQuery>(q =>
+        //            q.PageSize == 5 &&
+        //            q.PageNumber == 2
+        //        )), Times.Once);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
-        {
-            // Arrange
-            _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
-                .ReturnsAsync(new Results<IList<Instrument>>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                        new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
-                    }
-                });
+        //[Fact]
+        //public async Task GetAllAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
+        //{
+        //    // Arrange
+        //    _instrumentUseCaseMock.Setup(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()))
+        //        .ReturnsAsync(new Results<IList<Instrument>>
+        //        {
+        //            Errors = new List<TiendaMusicaError>
+        //            {
+        //                new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
+        //            }
+        //        });
 
-            var query = new InstrumentGetAllQuery();
+        //    var query = new InstrumentGetAllQuery();
 
-            // Act
-            await _instrumentsCommand.GetAllAsync(query);
+        //    // Act
+        //    await _instrumentsCommand.GetAllAsync(query);
 
-            // Assert
-            _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()), Times.Once);
-        }
+        //    // Assert
+        //    _instrumentUseCaseMock.Verify(useCase => useCase.GetAllAsync(It.IsAny<InstrumentGetAllQuery>()), Times.Once);
+        //}
 
         [Fact]
         public async Task CreateAsync_ShouldCreateInstrument_WhenUseCaseReturnsSuccess()

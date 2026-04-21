@@ -23,48 +23,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             _circuitBreakerPolicy = circuitBreakerPolicy;
         }
 
-        public async Task<Results<IList<Instrument>>> GetAllAsync(
-            SortDirection sortDirection = SortDirection.Desc,
-            Expression<Func<Instrument, bool>>[]? filters = null,
-            int? skip = null,
-            int? take = null
-            )
-        {
-            return await _circuitBreakerPolicy.ExecuteAsync(async () =>
-            {
-                IQueryable<Instrument> query = _context.Instruments.AsNoTracking();
-
-                if (sortDirection == SortDirection.Desc)
-                    query = query.OrderByDescending(i => i.CreationDateUtc);
-                else
-                    query = query.OrderBy(i => i.CreationDateUtc);
-
-                if (filters != null && filters.Any())
-                {
-                    foreach (var filter in filters)
-                    {
-                        query = query.Where(filter);
-                    }
-                }
-
-                if (skip.HasValue && skip.Value > 0)
-                {
-                    query = query.Skip(skip.Value);
-                }
-
-                if (take.HasValue && take.Value > 0)
-                {
-                    query = query.Take(take.Value);
-                }
-
-                var instruments = await query.ToListAsync();
-                return new Results<IList<Instrument>>
-                {
-                    Result = instruments,
-                };
-            });
-        }
-
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
@@ -140,11 +98,57 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             _context.Instruments.Update(instrument);
         }
 
-        public void DeleteMultipleAsync(IList<Instrument> instruments)
+        public void DeleteMultiple(IList<Instrument> instruments)
         {
             _context.Instruments.RemoveRange(instruments);
         }
 
+        public async Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQueryParametersDto? queryParameters)
+        {
+            return await _circuitBreakerPolicy.ExecuteAsync(async () =>
+            {
+                var results = new Results<IList<Instrument>>();
+                IQueryable<Instrument> query = _context.Instruments.AsNoTracking();
 
+                if (queryParameters == null)
+                {
+                    results.Result = await query.ToListAsync();
+                    return results;
+                }
+
+
+                if (queryParameters.PageNumber > 0 && queryParameters.PageSize > 0)
+                {
+                    query = query.Skip((queryParameters.PageNumber.Value - 1) * queryParameters.PageSize.Value)
+                                 .Take(queryParameters.PageSize.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(queryParameters.Search))
+                {
+                    string search = queryParameters.Search.ToLower();
+
+                    query = query.Where(p => p.Name.ToLower().Contains(search)
+                                          || p.Description.ToLower().Contains(search));
+                }
+
+                if (!string.IsNullOrWhiteSpace(queryParameters.OrderBy))
+                {
+                    query = queryParameters.OrderBy.ToLower() switch
+                    {
+                        "name" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Name) : query.OrderByDescending(i => i.Name),
+                        "price" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Price) : query.OrderByDescending(i => i.Price),
+                        "stock" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Stock) : query.OrderByDescending(i => i.Stock),
+                        "type" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Type) : query.OrderByDescending(i => i.Type),
+                        "creationdateutc" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.CreationDateUtc) : query.OrderByDescending(i => i.CreationDateUtc),
+                        _ => query.OrderBy(p => p.Id)
+                    };
+                }
+
+
+                results.Result = await query.ToListAsync();
+                return results;
+            });
+
+        }
     }
 }

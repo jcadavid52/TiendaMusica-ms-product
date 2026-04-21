@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.Validators.Instruments;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
@@ -16,12 +17,10 @@ namespace TiendaMusica.Application.UseCases.Instruments
         private readonly ILogger<InstrumentUseCase> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly DomainEventsCollector _events;
-        private readonly ICachePort _cachePort;
         private readonly IInstrumentValidator<InstrumentUpdateCommand, Instrument> _updateValidator;
         private readonly IInstrumentValidator<InstrumentCreateCommand, bool> _createValidator;
         private readonly IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> _deleteMassiveValidator;
-        private const string CACHE_KEY_PREFIX = "product:instrument:";
-        private const string CACHE_KEY_LIST_PREFIX = "product:instruments:";
+
         public InstrumentUseCase(
             IInstrumentsRepositoryPort instrumentsRepositoryPorts,
             IInstrumentValidator<InstrumentUpdateCommand, Instrument> updateValidator,
@@ -29,8 +28,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
             IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> deleteMassiveValidator,
             ILogger<InstrumentUseCase> logger,
             IUnitOfWork unitOfWork,
-            DomainEventsCollector events,
-            ICachePort cachePort
+            DomainEventsCollector events
             )
         {
             _instrumentsRepositoryPorts = instrumentsRepositoryPorts;
@@ -40,127 +38,32 @@ namespace TiendaMusica.Application.UseCases.Instruments
             _logger = logger;
             _unitOfWork = unitOfWork;
             _events = events;
-            _cachePort = cachePort;
         }
 
-        private async Task InvalidateCacheAsync()
-        {
-            await _cachePort.RemoveByPatternAsync($"{CACHE_KEY_LIST_PREFIX}page:*");
-            await _cachePort.RemoveAsync($"{CACHE_KEY_LIST_PREFIX}all");
-        }
-        private async Task InvalidateCacheAsync(string id)
-        {
-            await _cachePort.RemoveAsync($"{CACHE_KEY_PREFIX}{id}");
-        }
-        private async Task<IList<Instrument>?> GetCacheListAsync(string cacheKey)
-        {
-            var cachedResult = await _cachePort.GetAsync<IList<Instrument>>(cacheKey);
-            if (cachedResult != null)
-            {
-                _logger.LogInformation("Retornando lista de instrumentos desde el caché con clave: {CacheKey}", cacheKey);
-                return cachedResult;
-            }
-            return null;
-        }
-
-        public async Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQuery? query = null)
+        public async Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQueryParametersDto? query)
         {
             _logger.LogInformation("Inicialización Obtención de todos los instrumentos desde el caso de uso");
 
-            var resultInstruments = new Results<IList<Instrument>>();
-            string cacheKey = "";
+            var results = new Results<IList<Instrument>>();
 
-            if (query != null)
-            {
-                var filters = new List<Expression<Func<Instrument, bool>>>();
-
-                if (!string.IsNullOrWhiteSpace(query.Search))
-                {
-                    var searchTerm = query.Search.Trim();
-                    bool isEnumValue = Enum.TryParse<InstrumentType>(searchTerm, true, out var typeResult);
-
-                    if (isEnumValue)
-                    {
-                        filters.Add(b =>
-                        b.Name.Contains(searchTerm) ||
-                        b.Description.Contains(searchTerm) ||
-                        b.Type == typeResult
-                        );
-                    }
-                    else
-                    {
-                        filters.Add(b =>
-                         b.Name.Contains(searchTerm) ||
-                         b.Description.Contains(searchTerm)
-                         );
-                    }
-
-                    cacheKey = $"{CACHE_KEY_LIST_PREFIX}page:{query.PageNumber}:size:{query.PageSize}:search:{query.Search}:sort:{query.SortDirection}";
-                }
-                else
-                {
-                    cacheKey = $"{CACHE_KEY_LIST_PREFIX}page:{query.PageNumber}:size:{query.PageSize}:sort:{query.SortDirection}";
-                }
-
-                var resultInstrumentsCacheWithFilters = await GetCacheListAsync(cacheKey);
-                if (resultInstrumentsCacheWithFilters != null)
-                {
-                    resultInstruments.Result = resultInstrumentsCacheWithFilters;
-                    return resultInstruments;
-                }
-
-                resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync(
-                    skip: (query.PageNumber - 1) * query.PageSize,
-                    take: query.PageSize,
-                    filters: [.. filters],
-                    sortDirection: query.SortDirection
-                );
-            }
-            else
-            {
-                cacheKey = $"{CACHE_KEY_LIST_PREFIX}all";
-
-                var resultInstrumentsCache = await GetCacheListAsync(cacheKey);
-
-                if (resultInstrumentsCache != null)
-                {
-                    resultInstruments.Result = resultInstrumentsCache;
-                    return resultInstruments;
-                }
-
-                resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync();
-            }
+            var resultInstruments = await _instrumentsRepositoryPorts.GetAllAsync(query);
 
             if (resultInstruments.HasErrors)
             {
                 _logger.LogWarning("Se encontraron errores llamando al respositorio sql server:{Errors}", resultInstruments.Errors);
-                resultInstruments.AddErrors(resultInstruments.Errors);
-                return resultInstruments;
-            }
-
-            if (resultInstruments.IsSuccess && resultInstruments.Result.Count > 0)
-            {
-                await _cachePort.SetAsync(cacheKey, resultInstruments.Result, TimeSpan.FromMinutes(10));
+                results.AddErrors(resultInstruments.Errors);
+                return results;
             }
 
             _logger.LogInformation("Retornando todos los instrumentos exitosamente con {Count} instrumentos desde el caso de uso", resultInstruments.Result.Count);
-            return resultInstruments;
+            results.Result = resultInstruments.Result;
+            return results;
         }
 
         public async Task<Results<Instrument>> GetByIdAsync(string id)
         {
             var results = new Results<Instrument>();
             _logger.LogInformation("Inicialización Obtención de instrumento por ID desde el caso de uso con ID: {InstrumentId}", id);
-
-            string cacheKey = $"{CACHE_KEY_PREFIX}{id}";
-
-            var cachedResult = await _cachePort.GetAsync<Instrument>(cacheKey);
-            if (cachedResult != null)
-            {
-                _logger.LogInformation("Retornando instrumento desde el caché con ID: {InstrumentId}", id);
-                results.Result = cachedResult;
-                return results;
-            }
 
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -184,8 +87,6 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 results.AddError(ErrorCode.NOT_FOUND, $"Instrumento no encontrado con ID: {id}");
                 return results;
             }
-
-            await _cachePort.SetAsync(cacheKey, resultFind.Result, TimeSpan.FromMinutes(10));
 
             _logger.LogInformation("Retornando instrumento exitosamente desde el caso de uso con ID: {InstrumentId}", id);
             results.Result = resultFind.Result;
@@ -236,11 +137,6 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     return results.AddErrors(saveChangesResult.Errors);
                 }
 
-                string cacheKey = $"{CACHE_KEY_PREFIX}{resultCreate.Result.Id}";
-
-                await _cachePort.SetAsync(cacheKey, resultCreate.Result, TimeSpan.FromHours(24));
-                await InvalidateCacheAsync();
-
                 _logger.LogInformation("Instrumento creado exitosamente con ID: {InstrumentId}", resultCreate.Result.Id);
 
                 return resultCreate;
@@ -266,7 +162,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
             }
 
             _logger.LogInformation("Iniciando eliminación masiva en el repositorio");
-            _instrumentsRepositoryPorts.DeleteMultipleAsync(instrumentsToDelete.Result);
+            _instrumentsRepositoryPorts.DeleteMultiple(instrumentsToDelete.Result);
 
             _logger.LogInformation("Agregando evento de eliminación masiva de instrumentos");
             _events.AddEvent(new InstrumentDeletedMassiveEvent(instrumentsToDelete.Result));
@@ -278,10 +174,6 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 _logger.LogWarning("Se encontraron errores al guardar los cambios en la base de datos después de crear el instrumento:{Errors}", saveChangesResult.Errors);
                 return results.AddErrors(saveChangesResult.Errors);
             }
-
-            await InvalidateCacheAsync();
-
-            instrumentsToDelete.Result.ToList().ForEach(async i => await InvalidateCacheAsync(i.Id));
 
             _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", instrumentsToDelete.Result.Count);
             results.Result = instrumentsToDelete.Result.Count;
@@ -322,11 +214,11 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 var saveResult = await _unitOfWork.SaveChangesAsync<string>();
 
                 if (saveResult.HasErrors || !saveResult.Result)
+                {
+                    _logger.LogWarning("Se encontraron errores al guardar los cambios en la base de datos después de actualizar el instrumento:{Errors}", saveResult.Errors);
                     return results.AddErrors(saveResult.Errors);
-
-                await InvalidateCacheAsync();
-                await InvalidateCacheAsync(command.Id);
-
+                }
+                   
                 _logger.LogInformation("Actualizado: {InstrumentId}", instrumentUpdated.Result.Id);
                 return instrumentUpdated;
             }

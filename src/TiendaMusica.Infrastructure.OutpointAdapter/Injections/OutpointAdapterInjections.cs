@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapters;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Config;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repositories;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Repositories;
 using TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq;
@@ -72,7 +74,16 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 options.UseSqlServer(connectionString);
             });
 
-            services.AddScoped<IInstrumentsRepositoryPort, SqlServerInstrumentsRepositoryAdapter>();
+            services.AddScoped<SqlServerInstrumentsRepositoryAdapter>();
+
+            services.AddScoped<IInstrumentsRepositoryPort>(provider =>
+            {
+                var sqlAdapter = provider.GetRequiredService<SqlServerInstrumentsRepositoryAdapter>();
+                var cachePort = provider.GetRequiredService<ICachePort>();
+                var logger = provider.GetRequiredService<ILogger<RedisCachedInstrumentRepositoryAdapter>>();
+
+                return new RedisCachedInstrumentRepositoryAdapter(sqlAdapter, cachePort, logger);
+            });
         }
 
         private static void ConfigureRedisCache(IServiceCollection services, IConfiguration configuration)

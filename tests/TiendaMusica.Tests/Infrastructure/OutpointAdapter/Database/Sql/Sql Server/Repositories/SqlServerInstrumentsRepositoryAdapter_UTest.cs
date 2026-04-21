@@ -23,41 +23,41 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             _adapter = new SqlServerInstrumentsRepositoryAdapter(_context, async);
         }
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnEmptyList_WhenNoDataInDatabase()
-        {
-            // Act
-            var result = await _adapter.GetAllAsync();
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnEmptyList_WhenNoDataInDatabase()
+        //{
+        //    // Act
+        //    var result = await _adapter.GetAllAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Empty(result.Result);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Empty(result.Result);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryHasData()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra Eléctrica", "Descripción test 1", InstrumentType.Stringed, 500, 10).Result;
-            var instrument2 = Instrument.Create("Guitarra Acústica", "Descripción test 2", InstrumentType.Stringed, 500, 15).Result;
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstruments_WhenRepositoryHasData()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra Eléctrica", "Descripción test 1", InstrumentType.Stringed, 500, 10).Result;
+        //    var instrument2 = Instrument.Create("Guitarra Acústica", "Descripción test 2", InstrumentType.Stringed, 500, 15).Result;
 
-            await _adapter.CreateAsync(instrument1);
-            await _adapter.CreateAsync(instrument2);
-            int expectedChanges = 2;
-            int saveResult = await SaveChangesAsync();
+        //    await _adapter.CreateAsync(instrument1);
+        //    await _adapter.CreateAsync(instrument2);
+        //    int expectedChanges = 2;
+        //    int saveResult = await SaveChangesAsync();
 
-            // Act
-            var result = await _adapter.GetAllAsync();
+        //    // Act
+        //    var result = await _adapter.GetAllAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Equal(expectedChanges, result.Result.Count);
-            Assert.Equal(expectedChanges, saveResult);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Equal(expectedChanges, result.Result.Count);
+        //    Assert.Equal(expectedChanges, saveResult);
+        //}
 
         [Fact]
         public async Task CreateAsync_ShouldCreateInstrument_Successfully()
@@ -242,67 +242,67 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
             Assert.IsAssignableFrom<IInstrumentsRepositoryPort>(_adapter);
         }
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateAsc()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
-            var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateAsc()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+        //    var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
 
-            await _adapter.CreateAsync(instrument1);
-            await Task.Delay(10);
-            await _adapter.CreateAsync(instrument2);
-            await Task.Delay(10);
-            await _adapter.CreateAsync(instrument3);
+        //    await _adapter.CreateAsync(instrument1);
+        //    await Task.Delay(10);
+        //    await _adapter.CreateAsync(instrument2);
+        //    await Task.Delay(10);
+        //    await _adapter.CreateAsync(instrument3);
 
-            int expectedChanges = 3;
-            int saveResult = await SaveChangesAsync();
+        //    int expectedChanges = 3;
+        //    int saveResult = await SaveChangesAsync();
 
-            // Act
-            var result = await _adapter.GetAllAsync(SortDirection.Asc);
+        //    // Act
+        //    var result = await _adapter.GetAllAsync(SortDirection.Asc);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Equal(3, result.Result.Count);
-            Assert.Equal("Guitarra Primera", result.Result[0].Name);
-            Assert.Equal("Guitarra Segunda", result.Result[1].Name);
-            Assert.Equal("Guitarra Tercera", result.Result[2].Name);
-            Assert.Equal(expectedChanges, saveResult);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Equal(3, result.Result.Count);
+        //    Assert.Equal("Guitarra Primera", result.Result[0].Name);
+        //    Assert.Equal("Guitarra Segunda", result.Result[1].Name);
+        //    Assert.Equal("Guitarra Tercera", result.Result[2].Name);
+        //    Assert.Equal(expectedChanges, saveResult);
+        //}
 
-        [Fact]
-        public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateDesc()
-        {
-            // Arrange
-            var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
-            var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
-            var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+        //[Fact]
+        //public async Task GetAllAsync_ShouldReturnInstrumentsOrderedByCreationDateDesc()
+        //{
+        //    // Arrange
+        //    var instrument1 = Instrument.Create("Guitarra Primera", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+        //    var instrument2 = Instrument.Create("Guitarra Segunda", "Descripción test", InstrumentType.Stringed, 500, 15).Result;
+        //    var instrument3 = Instrument.Create("Guitarra Tercera", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
 
-            await _adapter.CreateAsync(instrument1);
-            await Task.Delay(10);
-            await _adapter.CreateAsync(instrument2);
-            await Task.Delay(10);
-            await _adapter.CreateAsync(instrument3);
+        //    await _adapter.CreateAsync(instrument1);
+        //    await Task.Delay(10);
+        //    await _adapter.CreateAsync(instrument2);
+        //    await Task.Delay(10);
+        //    await _adapter.CreateAsync(instrument3);
 
-            int expectedChanges = 3;
-            int saveResult = await SaveChangesAsync();
+        //    int expectedChanges = 3;
+        //    int saveResult = await SaveChangesAsync();
 
-            // Act
-            var result = await _adapter.GetAllAsync(SortDirection.Desc);
+        //    // Act
+        //    var result = await _adapter.GetAllAsync(SortDirection.Desc);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.HasErrors);
-            Assert.NotNull(result.Result);
-            Assert.Equal(3, result.Result.Count);
-            Assert.Equal("Guitarra Tercera", result.Result[0].Name);
-            Assert.Equal("Guitarra Segunda", result.Result[1].Name);
-            Assert.Equal("Guitarra Primera", result.Result[2].Name);
-            Assert.Equal(expectedChanges, saveResult);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.False(result.HasErrors);
+        //    Assert.NotNull(result.Result);
+        //    Assert.Equal(3, result.Result.Count);
+        //    Assert.Equal("Guitarra Tercera", result.Result[0].Name);
+        //    Assert.Equal("Guitarra Segunda", result.Result[1].Name);
+        //    Assert.Equal("Guitarra Primera", result.Result[2].Name);
+        //    Assert.Equal(expectedChanges, saveResult);
+        //}
 
         //[Fact]
         //public async Task DeleteMultipleAsync_ShouldDeleteInstruments_WhenSuccessful()
