@@ -23,7 +23,7 @@ namespace TiendaMusica.Domain.Services
             return results;
         }
 
-        public Results<bool> ValidateStockAfterDeletion(
+        public Results<bool> ValidateMinimumStockAfterDeletion(
             IList<InstrumentStockSummary> instrumentStockSummaries,
             IList<Instrument> currentInstruments
             )
@@ -39,6 +39,20 @@ namespace TiendaMusica.Domain.Services
                     results.Result = false;
                     return results.AddError(ErrorCode.MINIMUM_STOCK_ERROR, $"No se puede proseguir con la eliminación. El stock total de instrumentos de tipo {stockSummary.Type} es de {stockSummary.TotalStock}, y el mínimo permitido es de {minimumStock}.");
                 }
+            }
+
+            results.Result = true;
+            return results;
+        }
+
+        public Results<bool> ValidateMinimumStockAfterUpdate(int stock, InstrumentType type)
+        {
+            var results = new Results<bool>();
+            int minimumStock = GetMinimumStockByType(type);
+            if (stock <= minimumStock)
+            {
+                results.Result = false;
+                return results.AddError(ErrorCode.MINIMUM_STOCK_ERROR, $"No se puede proseguir con la actualización. El stock total de instrumentos de tipo {type} es de {stock}, y el mínimo permitido es de {minimumStock}.");
             }
 
             results.Result = true;

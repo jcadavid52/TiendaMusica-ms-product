@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using TiendaMusica.Application.Dtos;
+using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -67,6 +68,26 @@ namespace TiendaMusica.Application.Validators.Instruments
             {
                 _logger.LogWarning("Error validación de stock por tipo '{Type}': {Errors}", command.Type, stockValidation.Errors);
                 return results.AddErrors(stockValidation.Errors);
+            }
+
+            if(command.Type != existing.Result.Type)
+            {
+                var currentStockResult = await _repository.GetStockByType(existing.Result.Type);
+
+                if (currentStockResult.HasErrors)
+                {
+                    _logger.LogWarning("Error al obtener stock por tipo actual: {Errors}", currentStockResult.Errors);
+                    return results.AddErrors(currentStockResult.Errors);
+                }
+
+               var minimumStockValidation = _validationService.ValidateMinimumStockAfterUpdate(
+                    currentStockResult.Result, existing.Result.Type);
+
+                if (!minimumStockValidation.IsSuccess && minimumStockValidation.HasErrors)
+                {
+                    _logger.LogWarning("Error validación de stock mínimo por tipo '{Type}': {Errors}", existing.Result.Type, minimumStockValidation.Errors);
+                    return results.AddErrors(minimumStockValidation.Errors);
+                }
             }
 
             _logger.LogInformation("Validación exitosa para instrumento: {InstrumentId}", command.Id);

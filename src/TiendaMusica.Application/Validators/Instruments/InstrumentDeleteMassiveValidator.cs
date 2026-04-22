@@ -41,7 +41,6 @@ namespace TiendaMusica.Application.Validators.Instruments
                 return results.AddError(ErrorCode.VALIDATION_ERROR, "Se encontraron IDs vacíos o inválidos");
             }
 
-
             var toDelete = await _repository.GetByIdsAsync(command.InstrumentIds);
 
             if (toDelete.HasErrors)
@@ -66,13 +65,14 @@ namespace TiendaMusica.Application.Validators.Instruments
                 return results.AddErrors(resultStockSummaries.Errors);
             }
 
-            var resultValidate = _validationService.ValidateStockAfterDeletion(resultStockSummaries.Result, toDelete.Result);
+            var resultValidate = _validationService.ValidateMinimumStockAfterDeletion(resultStockSummaries.Result, toDelete.Result);
 
             if (resultValidate.HasErrors)
             {
                 _logger.LogWarning("Error validación de stock antes de eliminación masiva: {Errors}", resultValidate.Errors);
                 return results.AddErrors(resultValidate.Errors);
             }
+
             results.Result = toDelete.Result;
             return results;
         }
