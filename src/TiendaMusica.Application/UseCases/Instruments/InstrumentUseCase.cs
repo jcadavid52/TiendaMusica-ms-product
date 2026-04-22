@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
 using TiendaMusica.Application.Dtos;
-using TiendaMusica.Application.Validators.Instruments;
+using TiendaMusica.Application.UseCases.Validators.Instruments;
 using TiendaMusica.Domain.Dtos;
-using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -148,38 +146,6 @@ namespace TiendaMusica.Application.UseCases.Instruments
             }
         }
 
-        public async Task<Results<int>> DeleteMultipleAsync(InstrumentDeleteMultipleCommand command)
-        {
-            _logger.LogInformation("Inicialización eliminación masiva de instrumentos desde el caso de uso con {Count} IDs", command.InstrumentIds.Count);
-            var results = new Results<int>();
-
-            var instrumentsToDelete = await _deleteMassiveValidator.ValidateAsync(command);
-
-            if (instrumentsToDelete.HasErrors || !instrumentsToDelete.IsSuccess)
-            {
-                _logger.LogWarning("Error validación: {Errors}", instrumentsToDelete.Errors);
-                return results.AddErrors(instrumentsToDelete.Errors);
-            }
-
-            _logger.LogInformation("Iniciando eliminación masiva en el repositorio");
-            _instrumentsRepositoryPorts.DeleteMultiple(instrumentsToDelete.Result);
-
-            _logger.LogInformation("Agregando evento de eliminación masiva de instrumentos");
-            _events.AddEvent(new InstrumentDeletedMassiveEvent(instrumentsToDelete.Result));
-
-            var saveChangesResult = await _unitOfWork.SaveChangesAsync<string>();
-
-            if (saveChangesResult.HasErrors)
-            {
-                _logger.LogWarning("Se encontraron errores al guardar los cambios en la base de datos después de crear el instrumento:{Errors}", saveChangesResult.Errors);
-                return results.AddErrors(saveChangesResult.Errors);
-            }
-
-            _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", instrumentsToDelete.Result.Count);
-            results.Result = instrumentsToDelete.Result.Count;
-            return results;
-        }
-
         public async Task<Results<Instrument>> UpdateAsync(InstrumentUpdateCommand command)
         {
             _logger.LogInformation("Inicialización actualización de instrumento: {InstrumentId}", command.Id);
@@ -218,7 +184,7 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     _logger.LogWarning("Se encontraron errores al guardar los cambios en la base de datos después de actualizar el instrumento:{Errors}", saveResult.Errors);
                     return results.AddErrors(saveResult.Errors);
                 }
-                   
+
                 _logger.LogInformation("Actualizado: {InstrumentId}", instrumentUpdated.Result.Id);
                 return instrumentUpdated;
             }
@@ -227,6 +193,38 @@ namespace TiendaMusica.Application.UseCases.Instruments
                 _logger.LogError(ex, "Error: {Message}", ex.Message);
                 return results.AddError(ErrorCode.VALIDATION_ERROR, $"Error: {ex.Message}");
             }
+        }
+
+        public async Task<Results<int>> DeleteMultipleAsync(InstrumentDeleteMultipleCommand command)
+        {
+            _logger.LogInformation("Inicialización eliminación masiva de instrumentos desde el caso de uso con {Count} IDs", command.InstrumentIds.Count);
+            var results = new Results<int>();
+
+            var instrumentsToDelete = await _deleteMassiveValidator.ValidateAsync(command);
+
+            if (instrumentsToDelete.HasErrors || !instrumentsToDelete.IsSuccess)
+            {
+                _logger.LogWarning("Error validación: {Errors}", instrumentsToDelete.Errors);
+                return results.AddErrors(instrumentsToDelete.Errors);
+            }
+
+            _logger.LogInformation("Iniciando eliminación masiva en el repositorio");
+            _instrumentsRepositoryPorts.DeleteMultiple(instrumentsToDelete.Result);
+
+            _logger.LogInformation("Agregando evento de eliminación masiva de instrumentos");
+            _events.AddEvent(new InstrumentDeletedMassiveEvent(instrumentsToDelete.Result));
+
+            var saveChangesResult = await _unitOfWork.SaveChangesAsync<string>();
+
+            if (saveChangesResult.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores al guardar los cambios en la base de datos después de crear el instrumento:{Errors}", saveChangesResult.Errors);
+                return results.AddErrors(saveChangesResult.Errors);
+            }
+
+            _logger.LogInformation("Eliminación masiva completada exitosamente. {Count} instrumentos eliminados", instrumentsToDelete.Result.Count);
+            results.Result = instrumentsToDelete.Result.Count;
+            return results;
         }
     }
 }

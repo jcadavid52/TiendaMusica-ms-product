@@ -2,7 +2,7 @@
 using Moq;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
-using TiendaMusica.Application.Validators.Instruments;
+using TiendaMusica.Application.UseCases.Validators.Instruments;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;

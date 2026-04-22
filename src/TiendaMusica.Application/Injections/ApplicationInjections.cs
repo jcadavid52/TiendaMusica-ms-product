@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
-using TiendaMusica.Application.Validators.Instruments;
+using TiendaMusica.Application.UseCases.Validators.Instruments;
 using TiendaMusica.Domain.Models;
 
 namespace TiendaMusica.Application.Injections

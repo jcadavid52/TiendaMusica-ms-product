@@ -24,25 +24,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
             _logger = logger;
         }
 
-        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
-        {
-            var createResult = await _innerRepository.CreateAsync(instrument);
-
-            string cacheKey = $"{CACHE_KEY_PREFIX}{instrument.Id}";
-            var setResult = await _cachePort.SetAsync(cacheKey, instrument);
-
-            if (setResult.HasErrors)
-            {
-                _logger.LogWarning("Se encontraron errores al guardar el instrumento en la cache con clave {CacheKey}: {Errors}", cacheKey, setResult.Errors);
-            }
-
-            return createResult;
-        }
-        public void DeleteMultiple(IList<Instrument> instruments)
-        {
-            _innerRepository.DeleteMultiple(instruments);
-        }
-
         public async Task<Results<IList<Instrument>>> GetAllAsync(InstrumentGetAllQueryParametersDto? queryParameters)
         {
             string cacheKey = $"{CACHE_KEY_LIST_PREFIX}" +
@@ -104,57 +85,11 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
 
         public async Task<Results<IList<Instrument>>> GetByIdsAsync(IList<string> instrumentIds)
         {
-            //string cacheKey = $"{CACHE_KEY_PREFIX}ids:{string.Join(",", instrumentIds)}";
-            //var cachedResult = await _cachePort.GetAsync<IList<Instrument>>(cacheKey);
-            //if (cachedResult.Result != null && cachedResult.IsSuccess)
-            //{
-            //    return new Results<IList<Instrument>> { Result = cachedResult.Result };
-            //}
-
-            //if (cachedResult.HasErrors)
-            //{
-            //    _logger.LogWarning("Se encontraron errores al obtener los instrumentos con ids {Ids} desde la cache con clave {CacheKey}: {Errors}", string.Join(",", instrumentIds), cacheKey, cachedResult.Errors);
-            //}
-
-            //var findResult = await _innerRepository.GetByIdsAsync(instrumentIds);
-            //if (findResult.Result != null)
-            //{
-            //    var setResult = await _cachePort.SetAsync(cacheKey, findResult.Result);
-            //    if (setResult.HasErrors)
-            //    {
-            //        _logger.LogWarning("Se encontraron errores al guardar los instrumentos con ids {Ids} en la cache con clave {CacheKey}: {Errors}", string.Join(",", instrumentIds), cacheKey, setResult.Errors);
-            //    }
-            //}
-
-            //return findResult;
-
             return await _innerRepository.GetByIdsAsync(instrumentIds);
         }
 
         public async Task<Results<Instrument?>> GetByNameAsync(string name)
         {
-            //string cacheKey = $"{CACHE_KEY_PREFIX}name:{name}";
-            //var cachedResult = await _cachePort.GetAsync<Instrument>(cacheKey);
-            //if (cachedResult.Result != null && cachedResult.IsSuccess)
-            //{
-            //    return new Results<Instrument?> { Result = cachedResult.Result };
-            //}
-
-            //if (cachedResult.HasErrors)
-            //{
-            //    _logger.LogWarning("Se encontraron errores al obtener el instrumento con nombre {Name} desde la cache con clave {CacheKey}: {Errors}", name, cacheKey, cachedResult.Errors);
-            //}
-
-            //var findResult = await _innerRepository.GetByNameAsync(name);
-            //if (findResult.Result != null)
-            //{
-            //    var setResult = await _cachePort.SetAsync(cacheKey, findResult.Result);
-            //    if (setResult.HasErrors)
-            //    {
-            //        _logger.LogWarning("Se encontraron errores al guardar el instrumento con nombre {Name} en la cache con clave {CacheKey}: {Errors}", name, cacheKey, setResult.Errors);
-            //    }
-            //}
-
             return await _innerRepository.GetByNameAsync(name);
         }
 
@@ -165,36 +100,32 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
 
         public async Task<Results<IList<InstrumentStockSummary>>> GetStockSummaryByInstrumentTypesAsync(IList<string> instrumentIds)
         {
-            //string cacheKey = $"{CACHE_KEY_LIST_PREFIX}stockSummary:ids:{string.Join(",", instrumentIds)}";
-            //var cachedResult = await _cachePort.GetAsync<IList<InstrumentStockSummary>>(cacheKey);
-            //if (cachedResult.Result != null && cachedResult.IsSuccess)
-            //{
-            //    return new Results<IList<InstrumentStockSummary>> { Result = cachedResult.Result };
-            //}
-
-            //if (cachedResult.HasErrors)
-            //{
-            //    _logger.LogWarning("Se encontraron errores al obtener el resumen de stock de los instrumentos con ids {Ids} desde la cache con clave {CacheKey}: {Errors}", string.Join(",", instrumentIds), cacheKey, cachedResult.Errors);
-            //}
-
-            //var findResult = await _innerRepository.GetStockSummaryByInstrumentTypesAsync(instrumentIds);
-            //if (findResult.Result != null)
-            //{
-            //    var setResult = await _cachePort.SetAsync(cacheKey, findResult.Result);
-            //    if (setResult.HasErrors)
-            //    {
-            //        _logger.LogWarning("Se encontraron errores al guardar el resumen de stock de los instrumentos con ids {Ids} en la cache con clave {CacheKey}: {Errors}", string.Join(",", instrumentIds), cacheKey, setResult.Errors);
-            //    }
-            //}
-
-            //return findResult;
-
             return await _innerRepository.GetStockSummaryByInstrumentTypesAsync(instrumentIds); ;
+        }
+
+        public async Task<Results<Instrument>> CreateAsync(Instrument instrument)
+        {
+            var createResult = await _innerRepository.CreateAsync(instrument);
+
+            string cacheKey = $"{CACHE_KEY_PREFIX}{instrument.Id}";
+            var setResult = await _cachePort.SetAsync(cacheKey, instrument);
+
+            if (setResult.HasErrors)
+            {
+                _logger.LogWarning("Se encontraron errores al guardar el instrumento en la cache con clave {CacheKey}: {Errors}", cacheKey, setResult.Errors);
+            }
+
+            return createResult;
         }
 
         public void Update(Instrument instrument)
         {
             _innerRepository.Update(instrument);
+        }
+
+        public void DeleteMultiple(IList<Instrument> instruments)
+        {
+            _innerRepository.DeleteMultiple(instruments);
         }
     }
 }

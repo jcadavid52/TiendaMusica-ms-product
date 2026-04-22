@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Diagnostics.CodeAnalysis;
-using TiendaMusica.Application.Dtos;
 using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Infrastructure.Entrypoint.Cli.Commands;

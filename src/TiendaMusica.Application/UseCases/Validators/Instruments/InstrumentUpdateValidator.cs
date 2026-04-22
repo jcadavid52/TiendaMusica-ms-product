@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using TiendaMusica.Application.Dtos;
-using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
-namespace TiendaMusica.Application.Validators.Instruments
+namespace TiendaMusica.Application.UseCases.Validators.Instruments
 {
     public class InstrumentUpdateValidator : IInstrumentValidator<InstrumentUpdateCommand, Instrument>
     {
@@ -70,7 +69,7 @@ namespace TiendaMusica.Application.Validators.Instruments
                 return results.AddErrors(stockValidation.Errors);
             }
 
-            if(command.Type != existing.Result.Type)
+            if (command.Type != existing.Result.Type)
             {
                 var currentStockResult = await _repository.GetStockByType(existing.Result.Type);
 
@@ -80,8 +79,8 @@ namespace TiendaMusica.Application.Validators.Instruments
                     return results.AddErrors(currentStockResult.Errors);
                 }
 
-               var minimumStockValidation = _validationService.ValidateMinimumStockAfterUpdate(
-                    currentStockResult.Result, existing.Result.Type);
+                var minimumStockValidation = _validationService.ValidateMinimumStockAfterUpdate(
+                     currentStockResult.Result, existing.Result.Type);
 
                 if (!minimumStockValidation.IsSuccess && minimumStockValidation.HasErrors)
                 {

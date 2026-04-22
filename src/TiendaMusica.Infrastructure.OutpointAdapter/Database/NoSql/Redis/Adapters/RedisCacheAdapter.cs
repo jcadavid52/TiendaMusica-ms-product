@@ -44,6 +44,11 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapt
             }
         }
 
+        public async Task<bool> ExistsAsync(string key)
+        {
+            return await _database.KeyExistsAsync(key);
+        }
+
         public async Task<Results<bool>> SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
         {
             var results = new Results<bool>();
@@ -61,6 +66,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapt
             }
             return results;
         }
+
         public async Task<Results<bool>> RemoveAsync(string key)
         {
             var results = new Results<bool>();
@@ -75,11 +81,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapt
                 results.AddError(ErrorCode.DATABASE_ERROR, $"Error al conectarse a Redis: {ex.Message}");
             }
             return results;
-        }
-
-        public async Task<bool> ExistsAsync(string key)
-        {
-            return await _database.KeyExistsAsync(key);
         }
 
         public async Task<Results<bool>> RemoveByPatternAsync(string pattern)

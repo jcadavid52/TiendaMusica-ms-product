@@ -1,6 +1,6 @@
 ﻿using TiendaMusica.Domain.Models.Result;
 
-namespace TiendaMusica.Application.Validators.Instruments
+namespace TiendaMusica.Application.UseCases.Validators.Instruments
 {
     public interface IInstrumentValidator<Command, Response>
     {

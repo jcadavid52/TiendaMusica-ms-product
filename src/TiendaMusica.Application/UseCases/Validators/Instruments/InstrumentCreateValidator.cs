@@ -4,7 +4,7 @@ using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
-namespace TiendaMusica.Application.Validators.Instruments
+namespace TiendaMusica.Application.UseCases.Validators.Instruments
 {
     public class InstrumentCreateValidator : IInstrumentValidator<InstrumentCreateCommand, bool>
     {
