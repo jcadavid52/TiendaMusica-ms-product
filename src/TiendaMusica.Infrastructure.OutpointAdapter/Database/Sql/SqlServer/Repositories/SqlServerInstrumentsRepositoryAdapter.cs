@@ -35,13 +35,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
                     return results;
                 }
 
-
-                if (queryParameters.PageNumber > 0 && queryParameters.PageSize > 0)
-                {
-                    query = query.Skip((queryParameters.PageNumber.Value - 1) * queryParameters.PageSize.Value)
-                                 .Take(queryParameters.PageSize.Value);
-                }
-
                 if (!string.IsNullOrWhiteSpace(queryParameters.Search))
                 {
                     string search = queryParameters.Search.ToLower();
@@ -63,6 +56,11 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
                     };
                 }
 
+                if (queryParameters.PageNumber > 0 && queryParameters.PageSize > 0)
+                {
+                    query = query.Skip((queryParameters.PageNumber.Value - 1) * queryParameters.PageSize.Value)
+                                 .Take(queryParameters.PageSize.Value);
+                }
 
                 results.Result = await query.ToListAsync();
                 return results;

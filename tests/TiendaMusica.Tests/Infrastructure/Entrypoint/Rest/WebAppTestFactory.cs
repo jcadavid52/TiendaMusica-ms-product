@@ -18,15 +18,19 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 
 namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 {
-    public class WebAppTestFactory : WebApplicationFactory<Program>
+    public class WebAppTestFactory : WebApplicationFactory<Program>,IAsyncLifetime
     {
         public string ActiveDb { get; private set; } = string.Empty;
+        public HttpClient? Client { get; private set; }
+        public IList<InstrumentCommonInfoDto> InitialInstruments { get; private set; } = [];
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureServices((context, services) =>
             {
                 var activeDb = context.Configuration["Database:Active"] ?? throw new ArgumentNullException("Valor de la base de datos activa el null");
-                if (string.Equals("LiteDb", activeDb, StringComparison.InvariantCultureIgnoreCase))
+
+                if (activeDb.Equals("LiteDb", StringComparison.OrdinalIgnoreCase))
                 {
                     var descriptors = services.Where(d =>
                         d.ServiceType == typeof(IOptions<LiteDbConfig>) ||
@@ -44,6 +48,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 }
                 else
                 {
+                    //RemoveRedisInjections(services);
+                    
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<InstrumentSqlServerDbContext>));
                     if (descriptor != null) services.Remove(descriptor);
 
@@ -78,24 +84,49 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             services.AddScoped<IMessagePublisherPort, TestMessagePublisher>();
         }
 
-        public async Task<IList<InstrumentCommonInfoDto>> ScopedDatabaseAsync()
+        public async Task<IList<InstrumentCommonInfoDto>> GetAllInstrumentDatabase()
         {
             if (string.Equals("LiteDb", ActiveDb, StringComparison.InvariantCultureIgnoreCase))
             {
-                var docs = ScopedDatabaseLiteDb();
+                using (var scope = Services.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<InstrumentLiteDbContext>();
+                    var entities = db.InstrumentsCollection.FindAll()
+                        .OrderByDescending(i => i.CreationDateUtc)
+                        .ToList();
 
-                return docs.Select(d => new InstrumentCommonInfoDto(d.Id, d.Name)).ToList();
+                    return entities.Select(e => new InstrumentCommonInfoDto(e.Id, e.Name, e.CreationDateUtc))
+                        .ToList();
+                }
             }
             else
             {
-                var entities = await ScopedDatabaseSqlServer();
-                return entities.Select(e => new InstrumentCommonInfoDto(e.Id, e.Name)).ToList();
+                using (var scope = Services.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
+                    var entities = await db.Instruments.ToListAsync();
+                    return entities.Select(e => new InstrumentCommonInfoDto(e.Id, e.Name, e.CreationDateUtc))
+                        .OrderByDescending(i => i.CreationDateUtc)
+                        .ToList();
+                }
             }
         }
 
-        private IList<InstrumentDocument> ScopedDatabaseLiteDb()
+        public async Task SeedInstrumentDatabaseAsync()
         {
-            var instruments = SeedDataLiteDb();
+            if (string.Equals("LiteDb", ActiveDb, StringComparison.InvariantCultureIgnoreCase))
+            {
+                SeedInstrumentDatabaseLiteDb();
+            }
+            else
+            {
+                await SeedInstrumentDatabaseSqlServer();
+            }
+        }
+
+        private void SeedInstrumentDatabaseLiteDb()
+        {
+            var instruments = BuildInstrumentDataLiteDb();
             using (var scope = Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<InstrumentLiteDbContext>();
@@ -103,13 +134,11 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 db.InstrumentsCollection.DeleteAll();
                 db.InstrumentsCollection.InsertBulk(instruments);
             }
-
-            return instruments;
         }
 
-        private async Task<IList<Instrument>> ScopedDatabaseSqlServer()
+        private async Task SeedInstrumentDatabaseSqlServer()
         {
-            var instruments = SeedDataMemorySql();
+            var instruments = BuildInstrumentDataMemorySql();
             using (var scope = Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
@@ -117,10 +146,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 await db.Instruments.AddRangeAsync(instruments);
                 await db.SaveChangesAsync();
             }
-            return instruments;
         }
 
-        private IList<InstrumentDocument> SeedDataLiteDb()
+        private IList<InstrumentDocument> BuildInstrumentDataLiteDb()
         {
             var instruments = new List<InstrumentDocument>();
             for (int i = 1; i <= 10; i++)
@@ -140,7 +168,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             return instruments;
         }
 
-        private IList<Instrument> SeedDataMemorySql()
+        private IList<Instrument> BuildInstrumentDataMemorySql()
         {
             var instruments = new List<Instrument>();
 
@@ -163,9 +191,26 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
             return instruments;
         }
+
+        public async Task InitializeAsync()
+        {
+            Client = CreateClient();
+            await SeedInstrumentDatabaseAsync();
+            InitialInstruments = await GetAllInstrumentDatabase();
+        }
+
+        public async Task DisposeAsync()
+        {
+            Client?.Dispose();
+            await Task.CompletedTask;
+        }
     }
 
-    public record InstrumentCommonInfoDto(string Id, string Name);
+    public record InstrumentCommonInfoDto(
+        string Id,
+        string Name,
+        DateTime CreationDateUtc
+        );
 
     public class TestMessagePublisher : IMessagePublisherPort
     {

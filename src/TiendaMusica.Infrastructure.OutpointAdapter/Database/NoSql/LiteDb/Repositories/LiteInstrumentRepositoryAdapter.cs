@@ -24,39 +24,38 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
         {
             var results = new Results<IList<Instrument>>();
             var query = _context.InstrumentsCollection.FindAll();
-            var domainItems = query.Select(x => _mapper.Map<Instrument>(x));
 
             if (queryParameters == null)
             {
-                results.Result = domainItems.ToList();
+                results.Result = query.Select(x => _mapper.Map<Instrument>(x)).ToList();
                 return Task.FromResult(results);
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParameters.Search))
+            {
+                query = query.Where(i => i.Name.Contains(queryParameters.Search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParameters.OrderBy))
+            {
+                query = queryParameters.OrderBy.ToLower() switch
+                {
+                    "name" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Name) : query.OrderByDescending(i => i.Name),
+                    "price" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Price) : query.OrderByDescending(i => i.Price),
+                    "stock" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Stock) : query.OrderByDescending(i => i.Stock),
+                    "type" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.Type) : query.OrderByDescending(i => i.Type),
+                    "creationdateutc" => queryParameters.SortDirection == SortDirection.Asc ? query.OrderBy(i => i.CreationDateUtc) : query.OrderByDescending(i => i.CreationDateUtc),
+                    _ => query.OrderBy(i => i.Id)
+                };
             }
 
             if (queryParameters.PageNumber > 0 && queryParameters.PageSize > 0)
             {
                 var skip = (queryParameters.PageNumber.Value - 1) * queryParameters.PageSize.Value;
-                domainItems = domainItems.Skip(skip).Take(queryParameters.PageSize.Value);
+                query = query.Skip(skip).Take(queryParameters.PageSize.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(queryParameters.Search))
-            {
-                domainItems = domainItems.Where(i => i.Name.Contains(queryParameters.Search, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrWhiteSpace(queryParameters.OrderBy))
-            {
-                domainItems = queryParameters.OrderBy.ToLower() switch
-                {
-                    "name" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Name) : domainItems.OrderByDescending(i => i.Name),
-                    "price" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Price) : domainItems.OrderByDescending(i => i.Price),
-                    "stock" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Stock) : domainItems.OrderByDescending(i => i.Stock),
-                    "type" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.Type) : domainItems.OrderByDescending(i => i.Type),
-                    "creationdateutc" => queryParameters.SortDirection == SortDirection.Asc ? domainItems.OrderBy(i => i.CreationDateUtc) : domainItems.OrderByDescending(i => i.CreationDateUtc),
-                    _ => domainItems.OrderBy(i => i.Id)
-                };
-            }
-
-            results.Result = domainItems.ToList();
+            results.Result = query.Select(x => _mapper.Map<Instrument>(x)).ToList();
             return Task.FromResult(results);
         }
 

@@ -88,56 +88,61 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 
         private static void ConfigureRedisCache(IServiceCollection services, IConfiguration configuration)
         {
-            var redisConfig = configuration.GetSection("Redis").Get<RedisConfig>()
-                ?? throw new ArgumentNullException("Error al obtener la configuración de Redis");
-
             services.Configure<RedisConfig>(configuration.GetSection("Redis"));
+
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var config = configuration.GetSection("Redis").Get<RedisConfig>() ?? throw new ArgumentNullException("Error al obtener la configuración de Redis");
+                return ConnectionMultiplexer.Connect(config.ConnectionString);
+            });
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = redisConfig.ConnectionString;
+                var config = configuration.GetSection("Redis").Get<RedisConfig>() ?? throw new ArgumentNullException("Error al obtener la configuración de Redis");
+                options.Configuration = config.ConnectionString;
                 options.InstanceName = "MyApp_";
             });
 
-            var redisConnection = ConnectionMultiplexer.Connect(redisConfig.ConnectionString);
-            services.AddSingleton<IConnectionMultiplexer>(redisConnection);
             services.AddScoped<ICachePort, RedisCacheAdapter>();
         }
 
         public static void AddPollyInjections(this IServiceCollection services, IConfiguration configuration)
         {
-            int eventsAllowedBeforeBreaking = int.Parse(configuration.GetSection("CircuitBreaker:EventsAllowedBeforeBreaking").Value ?? "3");
-            int durationOfBreakInSeconds = int.Parse(configuration.GetSection("CircuitBreaker:DurationOfBreakInSeconds").Value ?? "3");
+            services.AddSingleton<IAsyncPolicy>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<PollyLogger>>();
 
-            ILogger<PollyLogger> logger = services.BuildServiceProvider().GetService<ILogger<PollyLogger>>()
-                ?? throw new ArgumentNullException("Error obteniendo servicio de logger");
+                int eventsAllowed = int.Parse(configuration.GetSection("CircuitBreaker:EventsAllowedBeforeBreaking").Value ?? "3");
+                int durationInSeconds = int.Parse(configuration.GetSection("CircuitBreaker:DurationOfBreakInSeconds").Value ?? "3");
 
-            var circuitBreakerPolicy = Policy
-            .Handle<Exception>()
-            .CircuitBreakerAsync(
-                exceptionsAllowedBeforeBreaking: eventsAllowedBeforeBreaking,
-                durationOfBreak: TimeSpan.FromSeconds(durationOfBreakInSeconds),
-                onBreak: (exception, timespan) => { },
-                onReset: () => { },
-                onHalfOpen: () => { });
-
-            services.AddSingleton<IAsyncPolicy>(circuitBreakerPolicy);
+                return Policy
+                    .Handle<Exception>()
+                    .CircuitBreakerAsync(
+                        exceptionsAllowedBeforeBreaking: eventsAllowed,
+                        durationOfBreak: TimeSpan.FromSeconds(durationInSeconds),
+                        onBreak: (ex, ts) => logger.LogError("Circuit Broken"),
+                        onReset: () => logger.LogInformation("Circuit Reset")
+                    );
+            });
         }
 
         private static void AddRabbitMqInjections(IServiceCollection services, IConfiguration configuration)
         {
-            var rabbitConfig = configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>()
-                ?? throw new ArgumentNullException("Error al obtener la configuración de RabbitMQ");
+            services.Configure<RabbitMqConfig>(configuration.GetSection("RabbitMQ"));
 
-            var factory = new ConnectionFactory
+            services.AddSingleton<IConnectionFactory>(sp =>
             {
-                HostName = rabbitConfig.Host,
-                Port = rabbitConfig.Port,
-                UserName = rabbitConfig.Username,
-                Password = rabbitConfig.Password
-            };
+                var rabbitConfig = configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>()
+                    ?? throw new ArgumentNullException("Error al obtener la configuración de RabbitMQ");
 
-            services.AddSingleton<IConnectionFactory>(factory);
+                return new ConnectionFactory
+                {
+                    HostName = rabbitConfig.Host,
+                    Port = rabbitConfig.Port,
+                    UserName = rabbitConfig.Username,
+                    Password = rabbitConfig.Password
+                };
+            });
 
             services.AddSingleton<IConnection>(sp =>
             {
@@ -145,6 +150,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
 
                 return factory.CreateConnectionAsync().GetAwaiter().GetResult();
             });
+
             services.AddScoped<IMessagePublisherPort, RabbitMqPublisherAdapter>();
         }
     }
