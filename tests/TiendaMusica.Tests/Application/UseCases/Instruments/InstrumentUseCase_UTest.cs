@@ -7,6 +7,7 @@ using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TiendaMusica.Tests.Application.UseCases.Instruments
 {
@@ -19,6 +20,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         private readonly Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>> _updateValidatorMock;
         private readonly Mock<IInstrumentValidator<InstrumentCreateCommand, bool>> _createValidatorMock;
         private readonly Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>> _deleteMassiveValidatorMock;
+        private readonly InstrumentUseCase instrumentUseCase;
 
         public InstrumentUseCase_UTest()
         {
@@ -29,6 +31,16 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _updateValidatorMock = new Mock<IInstrumentValidator<InstrumentUpdateCommand, Instrument>>();
             _createValidatorMock = new Mock<IInstrumentValidator<InstrumentCreateCommand, bool>>();
             _deleteMassiveValidatorMock = new Mock<IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>>();
+
+            instrumentUseCase = new InstrumentUseCase(
+                _instrumentsRepositoryPortMock.Object,
+                _updateValidatorMock.Object,
+                _createValidatorMock.Object,
+                _deleteMassiveValidatorMock.Object,
+                _loggerMock.Object,
+                _unitOfWorkMock.Object,
+                _domainEventsCollectorMock.Object
+                );
         }
 
         //[Fact]
@@ -202,184 +214,36 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         //}
 
         [Fact]
-        public async Task CreateAsync_ShouldCreateInstrument_WhenValidationPasses()
-        {
-            // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            bool expectedChanges = true;
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = 10 });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
-                .ReturnsAsync(new Results<Instrument> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
-
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
-                );
-
-            _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
-               .ReturnsAsync(new Results<bool>
-               {
-                   Result = expectedChanges
-               });
-
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.IsSuccess);
-            Assert.False(result.HasErrors);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenGetStockByTypeReturnsErrors()
-        {
-            // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
-                    }
-                });
-
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
-                );
-
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenValidateLimitStockReturnsErrors()
-        {
-            // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            int currenStock = 10;
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = currenStock });
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
         public async Task CreateAsync_ShouldReturnsFailureResult_WhenExistingInstrument()
         {
             // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            int currentStock = 10;
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = currentStock });
+            var createCommand = new InstrumentCreateCommand(
+                "Instrument test",
+                "Instrument test description",
+                InstrumentType.Stringed,
+                1500,
+                1);
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument?> { Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result });
-
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
-                );
+            _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
+                                       .ReturnsAsync(new Results<bool> { Result = false }.AddError(ErrorCode.CONFLICT_ERROR, $"Ya existe: '{createCommand.Name}'"));
 
             // Act
-            var result = await useCase.CreateAsync(createCommand);
+            var result = await instrumentUseCase.CreateAsync(createCommand);
             // Assert
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
             Assert.True(result.HasErrors);
+            Assert.Equal(ErrorCode.CONFLICT_ERROR, result.Errors[0].ErrorCode);
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenGetByNameAsyncReturnsErrors()
+        public async Task CreateAsync_ShouldReturnsFailureResult_WhenRepositoryReturnsErrors()
         {
             // Arrange
             var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            int currentSock = 0;
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = currentSock });
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument?>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                         new TiendaMusicaError(ErrorCode.SERVER_ERROR,"Error en el servidor")
-                    }
-                });
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.CreateAsync(createCommand);
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenCreateAsyncReturnsErrors()
-        {
-            // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            int currentStock = 10;
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument?> { Result = null });
+            _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
+                            .ReturnsAsync(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
@@ -390,18 +254,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
             // Act
-            var result = await useCase.CreateAsync(createCommand);
+            var result = await instrumentUseCase.CreateAsync(createCommand);
             // Assert
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
@@ -409,33 +263,19 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldReturnsFailureResult_WhenCreateAsyncThrowArgumentException()
+        public async Task CreateAsync_ShouldReturnsFailureResult_WhenRepositoryThrowArgumentException()
         {
             // Arrange
             var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
-            int currentStock = 10;
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(createCommand.Type))
-                .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(createCommand.Name))
-                .ReturnsAsync(new Results<Instrument?> { Result = null });
+            _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
+                           .ReturnsAsync(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .Throws(new ArgumentException("Exception forzada en el UseCase"));
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
             // Act
-            var result = await useCase.CreateAsync(createCommand);
+            var result = await instrumentUseCase.CreateAsync(createCommand);
             // Assert
             Assert.NotNull(result);
             Assert.False(result.IsSuccess);
@@ -443,19 +283,21 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldCreateInstrument_WhenPublishEventSuccess()
+        public async Task CreateAsync_ShouldCreateInstrument_WhenValidationPasses()
         {
             //Assert
-            int currentStock = 10;
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            var createCommand = new InstrumentCreateCommand(
+                "Instrument test",
+                "Instrument test description",
+                InstrumentType.Stringed,
+                1500,
+                1);
+
             bool expectedChanges = true;
 
             //Act
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
-                .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
+            _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
+                .ReturnsAsync(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
@@ -469,17 +311,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     Result = expectedChanges
                 });
 
-            var useCase = new InstrumentUseCase(
-                _instrumentsRepositoryPortMock.Object,
-                _updateValidatorMock.Object,
-                _createValidatorMock.Object,
-                _deleteMassiveValidatorMock.Object,
-                _loggerMock.Object,
-                _unitOfWorkMock.Object,
-                _domainEventsCollectorMock.Object
-                );
-
-            var result = await useCase.CreateAsync(createCommand);
+            var result = await instrumentUseCase.CreateAsync(createCommand);
 
             //Assert
             Assert.NotNull(result);
@@ -490,14 +322,10 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         [Fact]
         public async Task CreateAsync_ShouldThrowsException_WhenSaveChangesFailure()
         {
-            int currentStock = 10;
             var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
-                .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(It.IsAny<string>()))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
+            _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
+                           .ReturnsAsync(new Results<bool> { Result = true });
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
@@ -508,17 +336,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Error al guardar los cambios en la base de datos"));
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            await Assert.ThrowsAsync<Exception>(() => useCase.CreateAsync(createCommand));
+            await Assert.ThrowsAsync<Exception>(() => instrumentUseCase.CreateAsync(createCommand));
         }
 
         [Fact]
@@ -530,18 +348,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(expectedInstrument.Id))
                 .ReturnsAsync(new Results<Instrument?> { Result = expectedInstrument });
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
             // Act
-            var result = await useCase.GetByIdAsync(expectedInstrument.Id);
+            var result = await instrumentUseCase.GetByIdAsync(expectedInstrument.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -558,18 +366,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             // Arrange
             var id = "";
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-            );
-
             // Act
-            var result = await useCase.GetByIdAsync(id);
+            var result = await instrumentUseCase.GetByIdAsync(id);
 
             // Assert
             Assert.NotNull(result);
@@ -593,18 +391,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                     }
                 });
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
             // Act
-            var result = await useCase.GetByIdAsync(id);
+            var result = await instrumentUseCase.GetByIdAsync(id);
 
             // Assert
             Assert.NotNull(result);
@@ -648,58 +436,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         //    Assert.False(result.HasErrors);
         //}
 
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldReturnError_WhenIdListIsEmpty()
-        {
-            // Arrange
-            var command = new InstrumentDeleteMultipleCommand(new List<string>());
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.DeleteMultipleAsync(command);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.VALIDATION_ERROR, result.Errors[0].ErrorCode);
-        }
-
-        [Fact]
-        public async Task DeleteMultipleAsync_ShouldReturnError_WhenIdListContainsEmptyIds()
-        {
-            // Arrange
-            var command = new InstrumentDeleteMultipleCommand(new List<string> { "id1", "", "id3" });
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.DeleteMultipleAsync(command);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.VALIDATION_ERROR, result.Errors[0].ErrorCode);
-        }
-
         //[Fact]
         //public async Task DeleteMultipleAsync_WhenRepositoryReturnsErrors_ReturnsFailureResult()
         //{
@@ -740,16 +476,9 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             var existingInstrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
             bool expectedChanges = true;
-            int currentStock = 10;
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
-              .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(existingInstrument.Id))
-                .ReturnsAsync(new Results<Instrument?> { Result = existingInstrument });
+            _updateValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentUpdateCommand>()))
+                            .ReturnsAsync(new Results<Instrument> { Result = existingInstrument });
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
                .ReturnsAsync(new Results<bool>
@@ -757,18 +486,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                    Result = expectedChanges
                });
 
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
             // Act
-            var result = await useCase.UpdateAsync(updateCommand);
+            var result = await instrumentUseCase.UpdateAsync(updateCommand);
 
             // Assert
             Assert.NotNull(result);
@@ -778,117 +497,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         }
 
         [Fact]
-        public async Task UpdateAsync_ShouldReturnError_WhenIdIsEmpty()
-        {
-            // Arrange
-            var updateCommand = new InstrumentUpdateCommand("", "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.UpdateAsync(updateCommand);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.VALIDATION_ERROR, result.Errors[0].ErrorCode);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_ShouldReturnError_WhenInstrumentNotFound()
-        {
-            // Arrange
-            var updateCommand = new InstrumentUpdateCommand("non-existent-id", "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
-
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync("non-existent-id"))
-                .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.UpdateAsync(updateCommand);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-            Assert.Equal(ErrorCode.NOT_FOUND, result.Errors[0].ErrorCode);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_ShouldReturnError_WhenGetByIdReturnsErrors()
-        {
-            // Arrange
-            var updateCommand = new InstrumentUpdateCommand("test-id", "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync("test-id"))
-                .ReturnsAsync(new Results<Instrument?>
-                {
-                    Errors = new List<TiendaMusicaError>
-                    {
-                        new TiendaMusicaError(ErrorCode.SERVER_ERROR, "Error en el servidor")
-                    }
-                });
-
-            var useCase = new InstrumentUseCase(
-               _instrumentsRepositoryPortMock.Object,
-               _updateValidatorMock.Object,
-               _createValidatorMock.Object,
-               _deleteMassiveValidatorMock.Object,
-               _loggerMock.Object,
-               _unitOfWorkMock.Object,
-               _domainEventsCollectorMock.Object
-               );
-
-            // Act
-            var result = await useCase.UpdateAsync(updateCommand);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsSuccess);
-            Assert.True(result.HasErrors);
-        }
-
-        [Fact]
         public async Task UpdateAsync_ShouldReturnError_WhenSaveChangesAsyncReturnsErrors()
         {
             // Arrange
             var existingInstrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
-            int currentStock = 10;
 
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetStockByType(It.IsAny<InstrumentType>()))
-              .ReturnsAsync(new Results<int> { Result = currentStock });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByNameAsync(updateCommand.Name))
-               .ReturnsAsync(new Results<Instrument?> { Result = null });
-
-            _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(existingInstrument.Id))
-                .ReturnsAsync(new Results<Instrument?> { Result = existingInstrument });
+            _updateValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentUpdateCommand>()))
+                .ReturnsAsync(new Results<Instrument> { Result = existingInstrument });
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
                .ReturnsAsync(new Results<bool>
@@ -900,18 +516,8 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                    }
                });
 
-            var useCase = new InstrumentUseCase(
-              _instrumentsRepositoryPortMock.Object,
-              _updateValidatorMock.Object,
-              _createValidatorMock.Object,
-              _deleteMassiveValidatorMock.Object,
-              _loggerMock.Object,
-              _unitOfWorkMock.Object,
-              _domainEventsCollectorMock.Object
-              );
-
             // Act
-            var result = await useCase.UpdateAsync(updateCommand);
+            var result = await instrumentUseCase.UpdateAsync(updateCommand);
 
             // Assert
             Assert.NotNull(result);
