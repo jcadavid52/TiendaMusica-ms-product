@@ -6,11 +6,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapters;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
@@ -48,8 +50,6 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 }
                 else
                 {
-                    //RemoveRedisInjections(services);
-                    
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<InstrumentSqlServerDbContext>));
                     if (descriptor != null) services.Remove(descriptor);
 
@@ -57,6 +57,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     {
                         options.UseInMemoryDatabase($"TestDatabase_Integration");
                     });
+
+                    RemoveRedisInjections(services);
                 }
 
                 RemoveRabbitMqInjections(services);
@@ -68,7 +70,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.UseEnvironment("Development");
+            builder.UseEnvironment("Local");
             return base.CreateHost(builder);
         }
 
@@ -82,6 +84,18 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
             services.RemoveAll<IMessagePublisherPort>();
             services.AddScoped<IMessagePublisherPort, TestMessagePublisher>();
+        }
+
+        private void RemoveRedisInjections(IServiceCollection services)
+        {
+            var descriptors = services.Where(d =>
+                d.ServiceType == typeof(IConnectionMultiplexer) ||
+                d.ServiceType == typeof(ICachePort))
+                .ToList();
+
+            foreach (var d in descriptors) services.Remove(d);
+
+            services.AddScoped<ICachePort, NullCacheAdapter>();
         }
 
         public async Task<IList<InstrumentCommonInfoDto>> GetAllInstrumentDatabase()
