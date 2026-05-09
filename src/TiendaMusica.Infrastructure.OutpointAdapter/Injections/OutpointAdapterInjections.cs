@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Polly;
 using RabbitMQ.Client;
 using StackExchange.Redis;
@@ -28,7 +29,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
             AddRabbitMqInjections(services, configuration);
             ConfigureRedisCache(services, configuration);
 
-            if (currentEnvironment == "Development")
+            if (currentEnvironment == "Local")
             {
                 string ConnectionActive = configuration.GetSection("Database:Active").Value
                     ?? throw new ArgumentNullException("No se pudo obtener el valor de la base de datos que está activa");
@@ -93,7 +94,23 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var config = configuration.GetSection("Redis").Get<RedisConfig>() ?? throw new ArgumentNullException("Error al obtener la configuración de Redis");
-                return ConnectionMultiplexer.Connect(config.ConnectionString);
+                var logger = sp.GetRequiredService<ILogger<PollyLogger>>();
+
+                try
+                {
+                    var redisOptions = ConfigurationOptions.Parse(config.ConnectionString);
+                    redisOptions.ConnectTimeout = config.ConnectTimeoutMilliseconds;
+                    redisOptions.SyncTimeout = config.SyncTimeoutMilliseconds;
+                    redisOptions.AbortOnConnectFail = false;
+                    redisOptions.AllowAdmin = false;
+
+                    return ConnectionMultiplexer.Connect(redisOptions);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "No se pudo conectar a Redis. La cache estará deshabilitada.");
+                    return null;
+                }
             });
 
             services.AddStackExchangeRedisCache(options =>
@@ -103,7 +120,20 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 options.InstanceName = "MyApp_";
             });
 
-            services.AddScoped<ICachePort, RedisCacheAdapter>();
+            services.AddScoped<ICachePort>(sp =>
+            {
+                var redis = sp.GetRequiredService<IConnectionMultiplexer>();
+                var logger = sp.GetRequiredService<ILogger<ResilientCacheAdapter>>();
+                var cacheOptions = sp.GetRequiredService<IOptions<RedisConfig>>();
+
+                if (redis == null)
+                {
+                    return new NullCacheAdapter();
+                }
+
+                var redisCache = new RedisCacheAdapter(redis, cacheOptions);
+                return new ResilientCacheAdapter(redis, redisCache, logger, timeoutMs: 1000);
+            });
         }
 
         public static void AddPollyInjections(this IServiceCollection services, IConfiguration configuration)

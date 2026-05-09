@@ -14,6 +14,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
         private readonly ILogger<RedisCachedInstrumentRepositoryAdapter> _logger;
         private const string CACHE_KEY_PREFIX = "product:instrument:";
         private const string CACHE_KEY_LIST_PREFIX = "product:instruments:";
+
         public RedisCachedInstrumentRepositoryAdapter(
             IInstrumentsRepositoryPort innerRepository,
             ICachePort cachePort,
@@ -46,7 +47,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
             if (result.Result != null && result.IsSuccess)
             {
                 var setResult = await _cachePort.SetAsync(cacheKey, result.Result);
-                if (setResult.HasErrors)
+                if (!setResult.Result)
                 {
                     _logger.LogWarning("Se encontraron errores al guardar la lista de instrumentos en la cache con clave {CacheKey}: {Errors}", cacheKey, setResult.Errors);
                 }
@@ -74,7 +75,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
             {
                 var setResult = await _cachePort.SetAsync(cacheKey, findResult.Result);
 
-                if (setResult.HasErrors)
+                if (!setResult.Result)
                 {
                     _logger.LogWarning("Se encontraron errores al guardar el instrumento con id {Id} en la cache con clave {CacheKey}: {Errors}", id, cacheKey, setResult.Errors);
                 }
@@ -110,7 +111,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Repos
             string cacheKey = $"{CACHE_KEY_PREFIX}{instrument.Id}";
             var setResult = await _cachePort.SetAsync(cacheKey, instrument);
 
-            if (setResult.HasErrors)
+            if (!setResult.Result)
             {
                 _logger.LogWarning("Se encontraron errores al guardar el instrumento en la cache con clave {CacheKey}: {Errors}", cacheKey, setResult.Errors);
             }
