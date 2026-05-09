@@ -46,7 +46,14 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapt
 
         public async Task<bool> ExistsAsync(string key)
         {
-            return await _database.KeyExistsAsync(key);
+            try
+            {
+                return await _database.KeyExistsAsync(key);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<Results<bool>> SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
