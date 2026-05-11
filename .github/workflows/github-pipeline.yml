@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ "dev" ]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
 
@@ -16,13 +20,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        file: ./src/TiendaMusica.Runner/Dockerfile
+        push: true
+        tags: ghcr.io/jcadavid52/tiendamusica-ms-product:latest
