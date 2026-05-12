@@ -34,10 +34,14 @@ namespace TiendaMusica.Domain.Services
             {
                 var currentTotalStock = currentInstruments.Where(i => i.Type == stockSummary.Type).Sum(i => i.Stock);
                 int minimumStock = GetMinimumStockByType(stockSummary.Type);
-                if (stockSummary.TotalStock <= minimumStock || currentTotalStock >= minimumStock)
+                int stockDifference = stockSummary.TotalStock - minimumStock;
+                if (stockSummary.TotalStock <= minimumStock || currentTotalStock > stockDifference)
                 {
                     results.Result = false;
-                    return results.AddError(ErrorCode.MINIMUM_STOCK_ERROR, $"No se puede proseguir con la eliminación. El stock total de instrumentos de tipo {stockSummary.Type} es de {stockSummary.TotalStock}, y el mínimo permitido es de {minimumStock}.");
+                    return results.AddError(ErrorCode.MINIMUM_STOCK_ERROR, $"No se puede proseguir con la eliminación." +
+                        $" El stock total de instrumentos de tipo '{stockSummary.Type}' es de '{stockSummary.TotalStock}'." +
+                        $" Stock mínimo permitido es de '{minimumStock}'." +
+                        $" Stock que intenta eliminar es de: '{currentTotalStock}'.");
                 }
             }
 
