@@ -45,7 +45,7 @@ jobs:
     - name: SonarCloud Begin Analysis
       run: |
         dotnet sonarscanner begin \
-          /k:"TiendaMusica-ms-product" \
+          /k:"jcadavid52_TiendaMusica-ms-product" \
           /o:"jcadavid52" \
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.host.url="https://sonarcloud.io" \
