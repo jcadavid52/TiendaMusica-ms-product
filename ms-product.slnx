@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="src/TiendaMusica.Application/TiendaMusica.Application.csproj" Id="f12367a9-386e-48e2-813d-5b0bdc1cfb4e" />
+  <Project Path="src/TiendaMusica.Domain/TiendaMusica.Domain.csproj" Id="0e998953-0b03-4b8f-a9c0-3c42308b8537" />
+  <Project Path="src/TiendaMusica.Infrastructure.Entrypoint/TiendaMusica.Infrastructure.Entrypoint.csproj" />
+  <Project Path="src/TiendaMusica.Infrastructure.OutpointAdapter/TiendaMusica.Infrastructure.OutpointAdapter.csproj" Id="cef5e1c0-a997-4c0e-9c02-6f3239cac185" />
+  <Project Path="src/TiendaMusica.Runner/TiendaMusica.Runner.csproj" Id="7a2d3e73-9fe6-4089-8233-9854131eca9b" />
+  <Project Path="src/TiendaMusica.Utilities/TiendaMusica.Utilities.csproj" Id="2c446e3a-5540-46ac-8ffd-b83beb5968b6" />
+  <Project Path="tests/TiendaMusica.Tests/TiendaMusica.Tests.csproj" Id="d0dd9723-2ff1-4e51-b0b7-9715407d9769" />
+</Solution>
