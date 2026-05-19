@@ -28,21 +28,25 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Setup Java 17
+      if: github.ref == 'refs/heads/main'
       uses: actions/setup-java@v4
       with:
         distribution: zulu
         java-version: 17
 
     - name: Install SonarScanner
+      if: github.ref == 'refs/heads/main'
       run: dotnet tool install --global dotnet-sonarscanner
 
     - name: Add .NET tools to PATH
+      if: github.ref == 'refs/heads/main'
       run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
     - name: Restore dependencies
       run: dotnet restore
 
     - name: SonarCloud Begin Analysis
+      if: github.ref == 'refs/heads/main'
       run: |
         dotnet sonarscanner begin \
           /k:"jcadavid52_TiendaMusica-ms-product" \
@@ -68,6 +72,7 @@ jobs:
       run: find . -name "coverage.opencover.xml"
 
     - name: SonarCloud End Analysis
+      if: github.ref == 'refs/heads/main'
       run: |
         dotnet sonarscanner end \
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
@@ -79,7 +84,19 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image DEV
+      if: github.ref == 'refs/heads/dev'
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        file: ./src/TiendaMusica.Runner/Dockerfile
+        push: true
+        tags: |
+          ghcr.io/jcadavid52/tiendamusica-ms-product:dev
+          ghcr.io/jcadavid52/tiendamusica-ms-product:dev-${{ github.sha }}
+
+    - name: Build and push Docker image MAIN
+      if: github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v7
       with:
         context: .
