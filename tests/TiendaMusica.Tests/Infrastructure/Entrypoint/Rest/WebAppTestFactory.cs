@@ -134,6 +134,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             }
             else
             {
+                await SeedCategoryDatabaseSqlServer();
                 await SeedInstrumentDatabaseSqlServer();
             }
         }
@@ -147,6 +148,22 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
                 db.InstrumentsCollection.DeleteAll();
                 db.InstrumentsCollection.InsertBulk(instruments);
+            }
+        }
+
+        private async Task SeedCategoryDatabaseSqlServer()
+        {
+            var categories = new List<Category>
+            {
+                new Category(1, "Instrumentos", "Instrumentos musicales"),
+            };
+
+            using (var scope = Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
+                db.Categories.RemoveRange(db.Categories);
+                await db.Categories.AddRangeAsync(categories);
+                await db.SaveChangesAsync();
             }
         }
 
@@ -193,7 +210,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     description: $"Descripción del instrumento {i}",
                     type: InstrumentType.Stringed,
                     price: 100.00m * i,
-                    stock: 1
+                    stock: 1,
+                    categoryId: 1
                 );
 
                 instrumentResult.Result.CreationDateUtc = DateTime.UtcNow.AddMinutes(-i);

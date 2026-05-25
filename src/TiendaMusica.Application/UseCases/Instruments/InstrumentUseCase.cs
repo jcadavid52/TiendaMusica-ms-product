@@ -110,7 +110,8 @@ namespace TiendaMusica.Application.UseCases.Instruments
                     instrumentCommand.Description,
                     instrumentCommand.Type,
                     instrumentCommand.Price,
-                    instrumentCommand.Stock
+                    instrumentCommand.Stock,
+                    instrumentCommand.CategoryId
                     );
 
                 if (instrument.HasErrors)

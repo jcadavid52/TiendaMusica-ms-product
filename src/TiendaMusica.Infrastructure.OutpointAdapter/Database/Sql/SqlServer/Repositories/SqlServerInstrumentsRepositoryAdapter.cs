@@ -27,7 +27,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
                 var results = new Results<IList<Instrument>>();
-                IQueryable<Instrument> query = _context.Instruments.AsNoTracking();
+                IQueryable<Instrument> query = _context.Instruments.Include(i => i.Category).AsNoTracking();
 
                 if (queryParameters == null)
                 {
@@ -72,7 +72,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Rep
         {
             return await _circuitBreakerPolicy.ExecuteAsync(async () =>
             {
-                var instrument = await _context.Instruments.AsNoTracking()
+                var instrument = await _context.Instruments.Include(i => i.Category).AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == id);
                 return new Results<Instrument?> { Result = instrument };
             });

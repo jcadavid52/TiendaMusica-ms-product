@@ -153,6 +153,9 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
             Console.Write("Stock inicial: ");
             int stock = int.Parse(Console.ReadLine() ?? "0");
 
+            Console.Write("Categoría del instrumento:");
+            int categoryId = int.Parse(Console.ReadLine() ?? "0");
+
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("✅ Creación en proceso...");
             Console.ResetColor();
@@ -161,7 +164,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli
                             Description: description,
                             Type: instrumentType,
                             Price: price,
-                            Stock: stock);
+                            Stock: stock,
+                            CategoryId: categoryId);
         }
 
         private static void ShowHelp()
