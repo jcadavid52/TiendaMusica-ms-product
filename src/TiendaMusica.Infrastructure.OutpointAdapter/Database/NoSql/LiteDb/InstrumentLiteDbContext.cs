@@ -51,10 +51,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             var categories = CategoriesCollection;
             if (categories.Count() > 0) return;
 
-            categories.Insert(new CategoryDocument { Id = 1, Name = "Cuerdas", Description = "Instrumentos de cuerda" });
-            categories.Insert(new CategoryDocument { Id = 2, Name = "Viento", Description = "Instrumentos de viento" });
-            categories.Insert(new CategoryDocument { Id = 3, Name = "Percusión", Description = "Instrumentos de percusión" });
-            categories.Insert(new CategoryDocument { Id = 4, Name = "Teclado", Description = "Instrumentos de teclado" });
+            categories.Insert(new CategoryDocument { Id = 1, Name = "Instrumentos", Description = "Instrumentos musicales" });
         }
 
         public ILiteCollection<InstrumentDocument> InstrumentsCollection => Context.GetCollection<InstrumentDocument>("Instruments");

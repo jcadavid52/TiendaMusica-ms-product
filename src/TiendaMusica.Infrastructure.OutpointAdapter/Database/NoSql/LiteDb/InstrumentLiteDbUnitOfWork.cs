@@ -12,7 +12,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         private readonly InstrumentLiteDbContext _context;
         private readonly IAsyncPolicy _circuitBreakerPolicy;
         private readonly DomainEventsCollector _domainEventsCollector;
-        private readonly ICachePort _cachePort;
         private readonly ILogger<InstrumentLiteDbUnitOfWork> _logger;
 
         public InstrumentLiteDbUnitOfWork(
@@ -20,7 +19,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             InstrumentLiteDbContext context,
             IAsyncPolicy circuitBreakerPolicy,
             DomainEventsCollector domainEventsCollector,
-            ICachePort cachePort,
             ILogger<InstrumentLiteDbUnitOfWork> logger
             )
         {
@@ -28,7 +26,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             _context = context;
             _circuitBreakerPolicy = circuitBreakerPolicy;
             _domainEventsCollector = domainEventsCollector;
-            _cachePort = cachePort;
             _logger = logger;
         }
 
@@ -89,14 +86,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
                     _logger.LogError(ex, "An exception occurred while saving changes to the database. Transaction rolled back. Errors: {Errors}", string.Join(", ", results.Errors.Select(e => e.Message)));
 
                     return results;
-                }
-                finally
-                {
-                    var removeByPatternResult = await _cachePort.RemoveByPatternAsync("product:*");
-                    if (removeByPatternResult.HasErrors)
-                    {
-                        _logger.LogWarning("Failed to remove cache entries with pattern 'product:*' after saving changes. Errors: {Errors}", string.Join(", ", removeByPatternResult.Errors.Select(e => e.Message)));
-                    }
                 }
             });
         }
