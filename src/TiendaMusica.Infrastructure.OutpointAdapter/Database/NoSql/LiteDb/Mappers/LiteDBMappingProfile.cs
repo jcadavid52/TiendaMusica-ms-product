@@ -8,8 +8,15 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Mapp
     {
         public LiteDBMappingProfile()
         {
-            CreateMap<Instrument, InstrumentDocument>();
-            CreateMap<InstrumentDocument, Instrument>();
+            CreateMap<Instrument, InstrumentDocument>()
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
+
+            CreateMap<InstrumentDocument, Instrument>()
+                .ConvertUsing(new InstrumentDocumentToInstrumentConverter());
+
+            CreateMap<Category, CategoryDocument>();
+            CreateMap<CategoryDocument, Category>()
+                .ConstructUsing(src => new Category(src.Id, src.Name, src.Description));
         }
     }
 }

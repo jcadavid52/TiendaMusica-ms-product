@@ -165,8 +165,10 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 1
             ).Result;
 
+            _context.Categories.Add(new Category(1,"Instrumentos","Categoría de instrumentos musicales"));
+
             var createdResult = await _adapter.CreateAsync(instrument);
-            int expectedChanges = 1;
+            int expectedChanges = 2;
             int saveResult = await SaveChangesAsync();
 
             // Act
