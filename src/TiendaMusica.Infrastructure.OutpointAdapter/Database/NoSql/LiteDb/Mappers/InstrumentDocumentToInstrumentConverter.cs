@@ -13,8 +13,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Mapp
                 source.Description,
                 source.Type,
                 source.Price,
-                source.Stock,
-                source.CategoryId
+                source.Stock
             );
 
             var instrument = result.Result!;

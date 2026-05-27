@@ -34,10 +34,6 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Validators
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("El stock no puede ser un número negativo.");
 
-            RuleFor(request => request.CategoryId)
-                .NotNull().WithMessage("El id de categoría es obligatorio.")
-                .NotEmpty().WithMessage("El id de categoría no puede estar vacío.");
-
         }
     }
 }

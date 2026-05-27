@@ -68,8 +68,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 "Descripción test",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
             int expectedChanges = 1;
 
@@ -97,7 +96,6 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 InstrumentType.Stringed,
                 500,
                 10
-                , 1
             ).Result;
             int expectedChanges = 1;
 
@@ -122,8 +120,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 "Descripción test",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
             await _adapter.CreateAsync(instrument);
             int expectedChanges = 1;
@@ -161,8 +158,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 "Descripción test",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
 
             _context.Categories.Add(new Category(1, "Instrumentos", "Categoría de instrumentos musicales"));
@@ -200,9 +196,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         {
             // Arrange
 
-            var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10, 1).Result;
-            var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 20, 1).Result;
-            var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 30, 1).Result;
+            var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
+            var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 30).Result;
 
             await _adapter.CreateAsync(instrument1);
             await _adapter.CreateAsync(instrument2);
@@ -229,8 +225,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 "Guitarra", "Descripción test",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
             await _adapter.CreateAsync(instrument);
             int expectedChanges = 1;
@@ -250,9 +245,9 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task GetStockByType_ShouldOnlyCountInstrumentsOfSpecificType()
         {
             // Arrange
-            var stringedInstrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10, 1).Result;
-            var windInstrument = Instrument.Create("Flauta", "Descripción test", InstrumentType.Wind, 300, 5, 1).Result;
-            var keyboardInstrument = Instrument.Create("Piano", "Descripción test", InstrumentType.keyboard, 1000, 2, 1).Result;
+            var stringedInstrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var windInstrument = Instrument.Create("Flauta", "Descripción test", InstrumentType.Wind, 300, 5).Result;
+            var keyboardInstrument = Instrument.Create("Piano", "Descripción test", InstrumentType.keyboard, 1000, 2).Result;
 
             await _adapter.CreateAsync(stringedInstrument);
             await _adapter.CreateAsync(windInstrument);
@@ -457,8 +452,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
                 "Descripción original",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
             await _adapter.CreateAsync(instrument);
             await SaveChangesAsync();

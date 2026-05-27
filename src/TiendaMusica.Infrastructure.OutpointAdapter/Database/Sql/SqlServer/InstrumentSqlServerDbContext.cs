@@ -48,6 +48,8 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
                       .WithOne(p => p.Category)
                       .HasForeignKey("CategoryId")
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasData(new Category(1, "Instrumentos", "Instrumentos musicales"));
             });
 
             modelBuilder.Entity<Instrument>(entity =>

@@ -7,7 +7,6 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Cli.Dtos
         string Description,
         InstrumentType Type,
         decimal Price,
-        int Stock,
-        int CategoryId
+        int Stock
         );
 }

@@ -179,9 +179,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         public async Task CreateAsync_ShouldCreateInstrument_WhenUseCaseReturnsSuccess()
         {
             // Arrange
-            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
-            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
-            var createdInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1).Result;
+            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createdInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
 
             _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
@@ -211,8 +211,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         public async Task CreateAsync_ShouldHandleErrors_WhenUseCaseReturnsErrors()
         {
             // Arrange
-            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
-            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
+            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
 
             _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
@@ -237,8 +237,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         public async Task CreateAsync_ShouldHandleConflictError_WhenInstrumentAlreadyExists()
         {
             // Arrange
-            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
-            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1);
+            var cliRequest = new InstrumentCreateCliRequest("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
+            var createCommand = new InstrumentCreateCommand("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1);
 
             _mapperMock.Setup(m => m.Map<InstrumentCreateCommand>(cliRequest))
                 .Returns(createCommand);
@@ -264,7 +264,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
         public async Task GetByIdAsync_ShouldReturnInstrument_WhenInstrumentExists()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1).Result;
+            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
 
             _instrumentUseCaseMock.Setup(useCase => useCase.GetByIdAsync(It.IsAny<string>()))
                 .ReturnsAsync(new Results<Instrument?>
@@ -447,7 +447,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Cli.Commands
             // Arrange
             var cliRequest = new InstrumentUpdateCliRequest("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
             var updateCommand = new InstrumentUpdateCommand("test-id", "Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed);
-            var updatedInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1, 1).Result;
+            var updatedInstrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 1500.00m, 1).Result;
 
             _mapperMock.Setup(m => m.Map<InstrumentUpdateCommand>(cliRequest))
                 .Returns(updateCommand);

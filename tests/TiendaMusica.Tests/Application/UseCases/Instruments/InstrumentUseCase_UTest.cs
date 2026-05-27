@@ -221,7 +221,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
-                1,
                 1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
@@ -245,7 +244,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
-                1,
                 1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
@@ -277,7 +275,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
-                1,
                 1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
@@ -303,7 +300,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
-                1,
                 1);
 
             bool expectedChanges = true;
@@ -320,8 +316,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                         createCommand.Description,
                         createCommand.Type,
                         createCommand.Price,
-                        createCommand.Stock,
-                        createCommand.CategoryId
+                        createCommand.Stock
                     ).Result
                 });
 
@@ -347,7 +342,6 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
-                1,
                 1
             );
 
@@ -362,8 +356,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                         createCommand.Description,
                         createCommand.Type,
                         createCommand.Price,
-                        createCommand.Stock,
-                        createCommand.CategoryId
+                        createCommand.Stock
                     ).Result
                 });
 
@@ -382,8 +375,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Guitarra eléctrica description test",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1
+                10
             ).Result;
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(expectedInstrument.Id))
@@ -519,8 +511,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Descripción original",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1).Result;
+                10).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
             bool expectedChanges = true;
 
@@ -552,8 +543,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Descripción original",
                 InstrumentType.Stringed,
                 500,
-                10,
-                1).Result;
+                10).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
 
             _updateValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentUpdateCommand>()))
