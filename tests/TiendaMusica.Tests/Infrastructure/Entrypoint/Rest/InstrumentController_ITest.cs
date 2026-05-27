@@ -187,6 +187,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 "Descripción test",
                 InstrumentType.Percussion,
                 1500.00m,
+                1,
                 1
                 );
             var content = new StringContent(JsonConvert.SerializeObject(newInstrument), Encoding.UTF8, "application/json");
@@ -241,6 +242,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                 "Descripción test",
                 InstrumentType.Stringed,
                 1500.00m,
+                1,
                 1
             );
             var content = new StringContent(JsonConvert.SerializeObject(newInstrument), Encoding.UTF8, "application/json");
@@ -635,7 +637,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             {
                  new object[]
                  {
-                    new InstrumentCreateRequest("","Descripción test",InstrumentType.Stringed,1500.00m,1),
+                    new InstrumentCreateRequest("","Descripción test",InstrumentType.Stringed,1500.00m,1,1),
                     new Results<InstrumentResponse>
                     {
                         Errors = new List<TiendaMusicaError>
@@ -646,7 +648,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                  },
                  new object[]
                  {
-                    new InstrumentCreateRequest("Nombre instrumento","",InstrumentType.Stringed,1500.00m,1),
+                    new InstrumentCreateRequest("Nombre instrumento","",InstrumentType.Stringed,1500.00m,1,1),
                     new Results<InstrumentResponse>
                     {
                         Errors = new List<TiendaMusicaError>
@@ -657,7 +659,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                  },
                  new object[]
                  {
-                    new InstrumentCreateRequest("Nombre instrumento","Descripción test",InstrumentType.Stringed,0,1),
+                    new InstrumentCreateRequest("Nombre instrumento","Descripción test",InstrumentType.Stringed,0,1,1),
                     new Results<InstrumentResponse>
                     {
                         Errors = new List<TiendaMusicaError>
@@ -668,7 +670,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                  },
                  new object[]
                  {
-                    new InstrumentCreateRequest("Nombre instrumento","Descripción test",InstrumentType.Stringed,900m,-1),
+                    new InstrumentCreateRequest("Nombre instrumento","Descripción test",InstrumentType.Stringed,900m,-1,1),
                     new Results<InstrumentResponse>
                     {
                         Errors = new List<TiendaMusicaError>

@@ -1,5 +1,6 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 using System.Diagnostics.CodeAnalysis;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Infrastructure.Entrypoint.Rest.Dtos;
@@ -20,7 +21,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Utilities.Examples
                 Description: "Descripción ejemplo instrumento creado.",
                 Type: InstrumentType.Stringed,
                 Price: 999.99m,
-                Stock: 10
+                Stock: 10,
+                Category: new CategoryDto(Id: 1, Name: "Instrument", Description: "Descripción ejemplo categoría.")
             )
             {
                 CreationDateUtc = DateTime.UtcNow.ToString(_dateFormat)

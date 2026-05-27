@@ -7,7 +7,6 @@ using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TiendaMusica.Tests.Application.UseCases.Instruments
 {
@@ -222,6 +221,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
+                1,
                 1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
@@ -240,7 +240,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task CreateAsync_ShouldReturnsFailureResult_WhenRepositoryReturnsErrors()
         {
             // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            var createCommand = new InstrumentCreateCommand(
+                "Instrument test",
+                "Instrument test description",
+                InstrumentType.Stringed,
+                1500,
+                1,
+                1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
                             .ReturnsAsync(new Results<bool> { Result = true });
@@ -266,7 +272,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task CreateAsync_ShouldReturnsFailureResult_WhenRepositoryThrowArgumentException()
         {
             // Arrange
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            var createCommand = new InstrumentCreateCommand(
+                "Instrument test",
+                "Instrument test description",
+                InstrumentType.Stringed,
+                1500,
+                1,
+                1);
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
                            .ReturnsAsync(new Results<bool> { Result = true });
@@ -291,6 +303,7 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
                 "Instrument test description",
                 InstrumentType.Stringed,
                 1500,
+                1,
                 1);
 
             bool expectedChanges = true;
@@ -302,7 +315,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
                 {
-                    Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result
+                    Result = Instrument.Create(
+                        createCommand.Name,
+                        createCommand.Description,
+                        createCommand.Type,
+                        createCommand.Price,
+                        createCommand.Stock,
+                        createCommand.CategoryId
+                    ).Result
                 });
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
@@ -322,7 +342,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         [Fact]
         public async Task CreateAsync_ShouldThrowsException_WhenSaveChangesFailure()
         {
-            var createCommand = new InstrumentCreateCommand("Instrument test", "Instrument test description", InstrumentType.Stringed, 1500, 1);
+            var createCommand = new InstrumentCreateCommand(
+                "Instrument test",
+                "Instrument test description",
+                InstrumentType.Stringed,
+                1500,
+                1,
+                1
+            );
 
             _createValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentCreateCommand>()))
                            .ReturnsAsync(new Results<bool> { Result = true });
@@ -330,7 +357,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
             _instrumentsRepositoryPortMock.Setup(repo => repo.CreateAsync(It.IsAny<Instrument>()))
                 .ReturnsAsync(new Results<Instrument>
                 {
-                    Result = Instrument.Create(createCommand.Name, createCommand.Description, createCommand.Type, createCommand.Price, createCommand.Stock).Result
+                    Result = Instrument.Create(
+                        createCommand.Name,
+                        createCommand.Description,
+                        createCommand.Type,
+                        createCommand.Price,
+                        createCommand.Stock,
+                        createCommand.CategoryId
+                    ).Result
                 });
 
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync<string>(It.IsAny<CancellationToken>()))
@@ -343,7 +377,14 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task GetByIdAsync_ShouldReturnInstrument_WhenInstrumentExists()
         {
             // Arrange
-            var expectedInstrument = Instrument.Create("Guitarra eléctrica", "Guitarra eléctrica description test", InstrumentType.Stringed, 500, 10).Result;
+            var expectedInstrument = Instrument.Create(
+                "Guitarra eléctrica",
+                "Guitarra eléctrica description test",
+                InstrumentType.Stringed,
+                500,
+                10,
+                1
+            ).Result;
 
             _instrumentsRepositoryPortMock.Setup(repo => repo.GetByIdAsync(expectedInstrument.Id))
                 .ReturnsAsync(new Results<Instrument?> { Result = expectedInstrument });
@@ -473,7 +514,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task UpdateAsync_ShouldUpdateInstrument_WhenSuccessful()
         {
             // Arrange
-            var existingInstrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
+            var existingInstrument = Instrument.Create(
+                "Guitarra Original",
+                "Descripción original",
+                InstrumentType.Stringed,
+                500,
+                10,
+                1).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
             bool expectedChanges = true;
 
@@ -500,7 +547,13 @@ namespace TiendaMusica.Tests.Application.UseCases.Instruments
         public async Task UpdateAsync_ShouldReturnError_WhenSaveChangesAsyncReturnsErrors()
         {
             // Arrange
-            var existingInstrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
+            var existingInstrument = Instrument.Create(
+                "Guitarra Original",
+                "Descripción original",
+                InstrumentType.Stringed,
+                500,
+                10,
+                1).Result;
             var updateCommand = new InstrumentUpdateCommand(existingInstrument.Id, "Guitarra Actualizada", "Descripción actualizada", InstrumentType.Stringed);
 
             _updateValidatorMock.Setup(validator => validator.ValidateAsync(It.IsAny<InstrumentUpdateCommand>()))

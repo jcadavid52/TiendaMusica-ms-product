@@ -1,4 +1,5 @@
-﻿using Polly;
+﻿using Microsoft.Extensions.Logging;
+using Polly;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
@@ -11,18 +12,21 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
         private readonly InstrumentLiteDbContext _context;
         private readonly IAsyncPolicy _circuitBreakerPolicy;
         private readonly DomainEventsCollector _domainEventsCollector;
+        private readonly ILogger<InstrumentLiteDbUnitOfWork> _logger;
 
         public InstrumentLiteDbUnitOfWork(
             IMessagePublisherPort messagePublisherPort,
             InstrumentLiteDbContext context,
             IAsyncPolicy circuitBreakerPolicy,
-            DomainEventsCollector domainEventsCollector
+            DomainEventsCollector domainEventsCollector,
+            ILogger<InstrumentLiteDbUnitOfWork> logger
             )
         {
             _messagePublisherPort = messagePublisherPort;
             _context = context;
             _circuitBreakerPolicy = circuitBreakerPolicy;
             _domainEventsCollector = domainEventsCollector;
+            _logger = logger;
         }
 
         public async Task<Results<bool>> SaveChangesAsync<TId>(CancellationToken cancellationToken = default)
@@ -54,11 +58,19 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
 
                             if (publishResult.HasErrors || !publishResult.Result)
                             {
+                                _context.Context.Rollback();
                                 results.AddErrors(publishResult.Errors);
                                 results.Result = false;
                                 return results;
                             }
                         }
+
+                        foreach (var root in aggregateRoots)
+                        {
+                            root.ClearEvents();
+                        }
+
+                        _domainEventsCollector.Clear();
                     }
 
                     _context.ClearTracker();
@@ -70,6 +82,9 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
                     _context.Context.Rollback();
                     results.AddError(ErrorCode.DATABASE_ERROR, $"An error occurred while saving changes: {ex.Message}");
                     results.Result = false;
+
+                    _logger.LogError(ex, "An exception occurred while saving changes to the database. Transaction rolled back. Errors: {Errors}", string.Join(", ", results.Errors.Select(e => e.Message)));
+
                     return results;
                 }
             });

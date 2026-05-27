@@ -4,15 +4,9 @@ using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models.Result;
 namespace TiendaMusica.Domain.Models
 {
-    public class Instrument : AggregateRoot<string>
+    public class Instrument : Product
     {
-        public string Name { get; private set; } = string.Empty;
-        public string Description { get; private set; } = string.Empty;
         public InstrumentType Type { get; private set; }
-        public decimal Price { get; private set; }
-        public int Stock { get; private set; }
-
-        private const decimal ShippingCost = 100;
 
         [JsonConstructor]
         private Instrument(
@@ -20,16 +14,13 @@ namespace TiendaMusica.Domain.Models
             string description,
             InstrumentType type,
             decimal price,
-            int stock
-            ) : base(Guid.NewGuid().ToString(), DateTime.UtcNow)
+            int stock,
+            int categoryId
+            ) : base(Guid.NewGuid().ToString(), DateTime.UtcNow, name, description, price, stock, categoryId)
         {
-            ValidateRequiredFields(name, description, type, price, stock);
+            ValidateInstrumentRequiredFields(type);
 
-            Name = name;
-            Description = description;
             Type = type;
-            Price = price;
-            Stock = stock;
         }
 
         private static bool EnsureBundleConsistency(string name, string description)
@@ -39,11 +30,6 @@ namespace TiendaMusica.Domain.Models
             if (isBundle && description.Length < 10) return false;
 
             return true;
-        }
-
-        private static bool ValidateMinimalPrice(decimal price)
-        {
-            return price < ShippingCost;
         }
 
         public Results<Instrument> Update(
@@ -70,14 +56,20 @@ namespace TiendaMusica.Domain.Models
             return resultInstrument;
         }
 
-        public static Results<Instrument> Create(string name, string description, InstrumentType type, decimal price, int stock)
+        public static Results<Instrument> Create(
+            string name,
+            string description,
+            InstrumentType type,
+            decimal price,
+            int stock,
+            int categoryId)
         {
             var result = new Results<Instrument>();
 
             var validationError = ValidateBusinessRules(name, description, price);
             if (validationError != null) return result.AddError(ErrorCode.VALIDATION_ERROR, validationError);
 
-            var instrument = new Instrument(name, description, type, price, stock);
+            var instrument = new Instrument(name, description, type, price, stock, categoryId);
 
             instrument.RaiseEvent(new InstrumentCreatedEvent(instrument));
 
@@ -99,19 +91,9 @@ namespace TiendaMusica.Domain.Models
             return null;
         }
 
-        private static void ValidateRequiredFields(
-            string name,
-            string description,
-            InstrumentType type,
-            decimal price,
-            int stock)
+        private static void ValidateInstrumentRequiredFields(InstrumentType type)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(stock);
-            ArgumentNullException.ThrowIfNull(stock, nameof(stock));
             ArgumentNullException.ThrowIfNull(type, nameof(type));
-            ArgumentNullException.ThrowIfNull(price, nameof(price));
-            ArgumentException.ThrowIfNullOrWhiteSpace(name);
-            ArgumentException.ThrowIfNullOrWhiteSpace(description);
         }
     }
 }
