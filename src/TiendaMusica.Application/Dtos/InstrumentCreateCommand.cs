@@ -9,21 +9,18 @@ namespace TiendaMusica.Application.Dtos
         public InstrumentType Type { get; private set; }
         public decimal Price { get; private set; }
         public int Stock { get; private set; }
-        public int CategoryId { get; private set; }
 
         public InstrumentCreateCommand(string name,
             string description,
             InstrumentType type,
             decimal price,
-            int stock,
-            int categoryId)
+            int stock)
         {
             Name = name.Trim();
             Description = description.Trim();
             Type = type;
             Price = price;
             Stock = stock;
-            CategoryId = categoryId;
         }
     }
 }

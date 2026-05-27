@@ -6,6 +6,7 @@ namespace TiendaMusica.Domain.Models
 {
     public class Instrument : Product
     {
+        const int CATEGORY_ID = 1;
         public InstrumentType Type { get; private set; }
 
         [JsonConstructor]
@@ -14,9 +15,8 @@ namespace TiendaMusica.Domain.Models
             string description,
             InstrumentType type,
             decimal price,
-            int stock,
-            int categoryId
-            ) : base(Guid.NewGuid().ToString(), DateTime.UtcNow, name, description, price, stock, categoryId)
+            int stock
+            ) : base(Guid.NewGuid().ToString(), DateTime.UtcNow, name, description, price, stock, CATEGORY_ID)
         {
             ValidateInstrumentRequiredFields(type);
 
@@ -61,15 +61,14 @@ namespace TiendaMusica.Domain.Models
             string description,
             InstrumentType type,
             decimal price,
-            int stock,
-            int categoryId)
+            int stock)
         {
             var result = new Results<Instrument>();
 
             var validationError = ValidateBusinessRules(name, description, price);
             if (validationError != null) return result.AddError(ErrorCode.VALIDATION_ERROR, validationError);
 
-            var instrument = new Instrument(name, description, type, price, stock, categoryId);
+            var instrument = new Instrument(name, description, type, price, stock);
 
             instrument.RaiseEvent(new InstrumentCreatedEvent(instrument));
 

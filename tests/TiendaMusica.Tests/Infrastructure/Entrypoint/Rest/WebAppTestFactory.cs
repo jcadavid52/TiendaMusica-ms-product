@@ -210,8 +210,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
                     description: $"Descripción del instrumento {i}",
                     type: InstrumentType.Stringed,
                     price: 100.00m * i,
-                    stock: 1,
-                    categoryId: 1
+                    stock: 1
                 );
 
                 instrumentResult.Result.CreationDateUtc = DateTime.UtcNow.AddMinutes(-i);
