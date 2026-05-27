@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using System.Xml.Linq;
-
-namespace TiendaMusica.Domain.Models
+﻿namespace TiendaMusica.Domain.Models
 {
     public class Category : AggregateRoot<int>
     {

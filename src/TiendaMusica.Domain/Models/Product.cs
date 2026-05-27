@@ -1,5 +1,3 @@
-using TiendaMusica.Domain.Models.Result;
-
 namespace TiendaMusica.Domain.Models
 {
     public abstract class Product : AggregateRoot<string>

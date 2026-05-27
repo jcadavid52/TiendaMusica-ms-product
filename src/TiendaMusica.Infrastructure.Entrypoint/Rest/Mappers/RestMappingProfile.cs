@@ -11,8 +11,8 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Mappers
     {
         public RestMappingProfile()
         {
-             CreateMap<Instrument, InstrumentResponse>()
-             .ForMember(dest => dest.CreationDateUtc, opt => opt.MapFrom<DateTimeToBogotaResolver>());
+            CreateMap<Instrument, InstrumentResponse>()
+            .ForMember(dest => dest.CreationDateUtc, opt => opt.MapFrom<DateTimeToBogotaResolver>());
             CreateMap<Category, CategoryDto>();
             CreateMap<InstrumentCreateRequest, InstrumentCreateCommand>();
             CreateMap<InstrumentUpdateRequest, InstrumentUpdateCommand>();

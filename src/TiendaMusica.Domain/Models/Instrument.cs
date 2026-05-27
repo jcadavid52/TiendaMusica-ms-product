@@ -69,7 +69,7 @@ namespace TiendaMusica.Domain.Models
             var validationError = ValidateBusinessRules(name, description, price);
             if (validationError != null) return result.AddError(ErrorCode.VALIDATION_ERROR, validationError);
 
-            var instrument = new Instrument(name, description, type, price, stock,categoryId);
+            var instrument = new Instrument(name, description, type, price, stock, categoryId);
 
             instrument.RaiseEvent(new InstrumentCreatedEvent(instrument));
 

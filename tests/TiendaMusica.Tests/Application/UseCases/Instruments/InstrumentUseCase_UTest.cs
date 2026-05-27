@@ -7,7 +7,6 @@ using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TiendaMusica.Tests.Application.UseCases.Instruments
 {

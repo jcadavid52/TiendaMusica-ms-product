@@ -26,7 +26,7 @@ namespace TiendaMusica.Tests.Domain.Models
         [Fact]
         public void Create_ShouldReturnValidationError_WhenPriceBelowShippingCost()
         {
-            var result = Instrument.Create("Guitarra", "Descripcion válida", InstrumentType.Stringed, 50m, 10,1);
+            var result = Instrument.Create("Guitarra", "Descripcion válida", InstrumentType.Stringed, 50m, 10, 1);
 
             Assert.NotNull(result);
             Assert.True(result.HasErrors);
@@ -37,7 +37,7 @@ namespace TiendaMusica.Tests.Domain.Models
         [Fact]
         public void Create_ShouldReturnValidationError_WhenBundleWithShortDescription()
         {
-            var result = Instrument.Create("Guitar Pack", "short", InstrumentType.Stringed, 500m, 5,1);
+            var result = Instrument.Create("Guitar Pack", "short", InstrumentType.Stringed, 500m, 5, 1);
 
             Assert.NotNull(result);
             Assert.True(result.HasErrors);
@@ -48,7 +48,7 @@ namespace TiendaMusica.Tests.Domain.Models
         [Fact]
         public void Create_ShouldSucceed_WhenBundleWithLongDescription()
         {
-            var result = Instrument.Create("Guitar Pack", "Descripción larga válida para un bundle", InstrumentType.Stringed, 500m, 5,1);
+            var result = Instrument.Create("Guitar Pack", "Descripción larga válida para un bundle", InstrumentType.Stringed, 500m, 5, 1);
 
             Assert.NotNull(result);
             Assert.False(result.HasErrors);
@@ -59,7 +59,7 @@ namespace TiendaMusica.Tests.Domain.Models
         [Fact]
         public void Create_ShouldThrow_WhenStockNegative()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => Instrument.Create("Guitarra", "Descripcion válida", InstrumentType.Stringed, 500m, -1,1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Instrument.Create("Guitarra", "Descripcion válida", InstrumentType.Stringed, 500m, -1, 1));
         }
     }
 }

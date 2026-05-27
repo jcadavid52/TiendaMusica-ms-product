@@ -12,15 +12,15 @@ using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb;
-using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapters;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Config;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Documents;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repositories;
+using TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.Redis.Adapters;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 
 namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 {
-    public class WebAppTestFactory : WebApplicationFactory<Program>,IAsyncLifetime
+    public class WebAppTestFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         public string ActiveDb { get; private set; } = string.Empty;
         public HttpClient? Client { get; private set; }
