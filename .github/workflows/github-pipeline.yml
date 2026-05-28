@@ -86,7 +86,7 @@ jobs:
 
     - name: Build and push Docker image DEV
       if: github.ref == 'refs/heads/dev'
-      uses: docker/build-push-action@v7
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
       with:
         context: .
         file: ./src/TiendaMusica.Runner/Dockerfile
@@ -97,7 +97,7 @@ jobs:
 
     - name: Build and push Docker image MAIN
       if: github.ref == 'refs/heads/main'
-      uses: docker/build-push-action@v7
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4
       with:
         context: .
         file: ./src/TiendaMusica.Runner/Dockerfile

@@ -8,7 +8,12 @@ namespace TiendaMusica.Tests.Domain.Models
         [Fact]
         public void Create_ShouldReturnInstrument_WhenValidParameters()
         {
-            var result = Instrument.Create("Guitarra", "Descripcion válida de más de diez", InstrumentType.Stringed, 500m, 10);
+            var result = Instrument.Create(
+                "Guitarra",
+                "Descripcion válida de más de diez",
+                InstrumentType.Stringed,
+                500m,
+                10);
 
             Assert.NotNull(result);
             Assert.False(result.HasErrors);

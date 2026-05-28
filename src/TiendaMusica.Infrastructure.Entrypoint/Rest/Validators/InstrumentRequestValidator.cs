@@ -33,6 +33,7 @@ namespace TiendaMusica.Infrastructure.Entrypoint.Rest.Validators
                 .NotNull().WithMessage("El stock es obligatorio")
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("El stock no puede ser un número negativo.");
+
         }
     }
 }

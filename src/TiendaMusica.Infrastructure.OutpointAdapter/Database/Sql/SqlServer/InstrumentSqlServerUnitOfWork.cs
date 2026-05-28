@@ -49,7 +49,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
                     var allEvents = new List<object>();
 
                     var aggregateRoots = _context.ChangeTracker.Entries()
-                    .Where(e => e.Entity is AggregateRoot<TId> root && root.DomainEvents.Any())
+                    .Where(e => e.Entity is AggregateRoot<TId> root && root.DomainEvents.Count != 0)
                     .Select(e => (AggregateRoot<TId>)e.Entity)
                     .ToList();
 
@@ -58,12 +58,12 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
                         allEvents.AddRange(root.DomainEvents);
                     }
 
-                    if (_domainEventsCollector.Events.Any())
+                    if (_domainEventsCollector.Events.Count != 0)
                     {
                         allEvents.AddRange(_domainEventsCollector.Events);
                     }
 
-                    if (allEvents.Any() && rowsAffected >= 1)
+                    if (allEvents.Count != 0 && rowsAffected >= 1)
                     {
                         foreach (var @event in allEvents)
                         {

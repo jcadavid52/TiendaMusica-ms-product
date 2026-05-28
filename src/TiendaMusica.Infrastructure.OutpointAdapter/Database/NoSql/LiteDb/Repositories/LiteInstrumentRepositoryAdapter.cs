@@ -33,7 +33,9 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
 
             if (!string.IsNullOrWhiteSpace(queryParameters.Search))
             {
-                query = query.Where(i => i.Name.Contains(queryParameters.Search, StringComparison.OrdinalIgnoreCase));
+                var search = queryParameters.Search.ToLower();
+                query = query.Where(i => i.Name.ToLower().Contains(search)
+                                      || i.Description.ToLower().Contains(search));
             }
 
             if (!string.IsNullOrWhiteSpace(queryParameters.OrderBy))
@@ -122,12 +124,14 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
             var collection = _context.InstrumentsCollection;
             var doc = _mapper.Map<InstrumentDocument>(instrument);
 
+            if (doc.CategoryId > 0)
+                doc.Category = _context.CategoriesCollection.FindById(doc.CategoryId);
+
             if (string.IsNullOrWhiteSpace(doc.Id))
             {
                 doc.Id = Guid.NewGuid().ToString();
             }
 
-            doc.CreationDateUtc = DateTime.UtcNow;
             collection.Insert(doc);
 
             _context.RegisterEntity(instrument);
@@ -138,6 +142,9 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb.Repo
         {
             var collection = _context.InstrumentsCollection;
             var instrumentDocument = _mapper.Map<InstrumentDocument>(instrument);
+
+            if (instrumentDocument.CategoryId > 0)
+                instrumentDocument.Category = _context.CategoriesCollection.FindById(instrumentDocument.CategoryId);
 
             collection.Update(instrumentDocument);
         }

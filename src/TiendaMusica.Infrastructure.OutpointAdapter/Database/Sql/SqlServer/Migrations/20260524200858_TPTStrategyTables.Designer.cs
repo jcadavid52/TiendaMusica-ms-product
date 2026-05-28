@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 
@@ -11,9 +12,11 @@ using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Migrations
 {
     [DbContext(typeof(InstrumentSqlServerDbContext))]
-    partial class InstrumentSqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524200858_TPTStrategyTables")]
+    partial class TPTStrategyTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,15 +49,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Mig
                     b.HasKey("Id");
 
                     b.ToTable("Categories", "ms-product");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreationDateUtc = new DateTime(2026, 5, 28, 2, 24, 2, 320, DateTimeKind.Utc).AddTicks(984),
-                            Description = "Instrumentos musicales",
-                            Name = "Instrumentos"
-                        });
                 });
 
             modelBuilder.Entity("TiendaMusica.Domain.Models.Product", b =>

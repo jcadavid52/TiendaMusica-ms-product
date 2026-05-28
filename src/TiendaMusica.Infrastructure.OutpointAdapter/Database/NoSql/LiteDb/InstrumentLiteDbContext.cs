@@ -24,7 +24,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
                 }
                 else
                 {
-                    // Lógica original para archivos físicos
                     if (string.IsNullOrWhiteSpace(configuredPath))
                         configuredPath = "LocalDatabase/litedb.db";
 
@@ -36,7 +35,6 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
                     if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                         Directory.CreateDirectory(directory);
 
-                    // Importante: Usamos Connection=Shared para mitigar bloqueos si se usa archivo
                     Context = new LiteDatabase($"Filename={dbPath};Connection=shared");
                 }
             }
@@ -44,9 +42,21 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.NoSql.LiteDb
             {
                 throw new Exception(ex.Message, ex);
             }
+
+            SeedCategoriesIfEmpty();
+        }
+
+        private void SeedCategoriesIfEmpty()
+        {
+            var categories = CategoriesCollection;
+            if (categories.Count() > 0) return;
+
+            categories.Insert(new CategoryDocument { Id = 1, Name = "Instrumentos", Description = "Instrumentos musicales" });
         }
 
         public ILiteCollection<InstrumentDocument> InstrumentsCollection => Context.GetCollection<InstrumentDocument>("Instruments");
+
+        public ILiteCollection<CategoryDocument> CategoriesCollection => Context.GetCollection<CategoryDocument>("Categories");
 
         public void RegisterEntity<T>(T entity) where T : class
         {

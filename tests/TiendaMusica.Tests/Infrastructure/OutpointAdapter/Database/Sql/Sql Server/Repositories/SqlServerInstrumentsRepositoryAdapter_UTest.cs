@@ -63,7 +63,13 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task CreateAsync_ShouldCreateInstrument_Successfully()
         {
             // Arrange
-            var instrument = Instrument.Create("Nueva Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Nueva Guitarra",
+                "Descripción test",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
             int expectedChanges = 1;
 
             // Act
@@ -84,7 +90,13 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task CreateAsync_ShouldPersistInstrument_ToDatabase()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra Persistente", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Guitarra Persistente",
+                "Descripción test",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
             int expectedChanges = 1;
 
             // Act
@@ -103,7 +115,13 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task GetByNameAsync_ShouldReturnInstrument_WhenFound()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Guitarra Eléctrica",
+                "Descripción test",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
             await _adapter.CreateAsync(instrument);
             int expectedChanges = 1;
             int saveResult = await SaveChangesAsync();
@@ -135,9 +153,18 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task GetByIdAsync_ShouldReturnInstrument_WhenFound()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra Eléctrica", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Guitarra Eléctrica",
+                "Descripción test",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
+
+            _context.Categories.Add(new Category(1, "Instrumentos", "Categoría de instrumentos musicales"));
+
             var createdResult = await _adapter.CreateAsync(instrument);
-            int expectedChanges = 1;
+            int expectedChanges = 2;
             int saveResult = await SaveChangesAsync();
 
             // Act
@@ -168,6 +195,7 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task GetStockByType_ShouldReturnTotalStock_WhenInstrumentsExist()
         {
             // Arrange
+
             var instrument1 = Instrument.Create("Guitarra 1", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
             var instrument2 = Instrument.Create("Guitarra 2", "Descripción test", InstrumentType.Stringed, 500, 20).Result;
             var instrument3 = Instrument.Create("Guitarra 3", "Descripción test", InstrumentType.Stringed, 500, 30).Result;
@@ -193,7 +221,12 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task GetStockByType_ShouldReturnZero_WhenNoInstrumentsOfType()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra", "Descripción test", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Guitarra", "Descripción test",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
             await _adapter.CreateAsync(instrument);
             int expectedChanges = 1;
             int saveResult = await SaveChangesAsync();
@@ -414,7 +447,13 @@ namespace TiendaMusica.Tests.Infrastructure.OutpointAdapter.Database.Sql.Sql_Ser
         public async Task UpdateAsync_ShouldUpdateInstrument_WhenSuccessful()
         {
             // Arrange
-            var instrument = Instrument.Create("Guitarra Original", "Descripción original", InstrumentType.Stringed, 500, 10).Result;
+            var instrument = Instrument.Create(
+                "Guitarra Original",
+                "Descripción original",
+                InstrumentType.Stringed,
+                500,
+                10
+            ).Result;
             await _adapter.CreateAsync(instrument);
             await SaveChangesAsync();
             int expectedChanges = 1;
