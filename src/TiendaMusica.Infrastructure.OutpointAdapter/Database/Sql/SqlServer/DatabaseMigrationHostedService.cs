@@ -21,9 +21,12 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
 
-            _logger.LogInformation("Aplicando migraciones pendientes de SQL Server...");
-            await db.Database.MigrateAsync(cancellationToken);
-            _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
+            if (db.Database.IsRelational())
+            {
+                _logger.LogInformation("Aplicando migraciones pendientes de SQL Server...");
+                await db.Database.MigrateAsync(cancellationToken);
+                _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
