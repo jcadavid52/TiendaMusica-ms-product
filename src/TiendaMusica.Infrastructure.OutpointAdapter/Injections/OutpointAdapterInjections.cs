@@ -75,6 +75,11 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Injections
                 options.UseSqlServer(connectionString);
             });
 
+            if (configuration.GetValue<bool>("Database:SQL:ApplyMigrationsOnStartup"))
+            {
+                services.AddHostedService<DatabaseMigrationHostedService>();
+            }
+
             services.AddScoped<SqlServerInstrumentsRepositoryAdapter>();
 
             services.AddScoped<IInstrumentsRepositoryPort>(provider =>
