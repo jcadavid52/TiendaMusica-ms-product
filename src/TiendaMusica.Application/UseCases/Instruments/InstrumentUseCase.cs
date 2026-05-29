@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using TiendaMusica.Application.Dtos;
-using TiendaMusica.Application.UseCases.Validators.Instruments;
+using TiendaMusica.Application.UseCases.Instruments.Validators;
 using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Events;
 using TiendaMusica.Domain.Models;
@@ -15,15 +15,15 @@ namespace TiendaMusica.Application.UseCases.Instruments
         private readonly ILogger<InstrumentUseCase> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly DomainEventsCollector _events;
-        private readonly IInstrumentValidator<InstrumentUpdateCommand, Instrument> _updateValidator;
-        private readonly IInstrumentValidator<InstrumentCreateCommand, bool> _createValidator;
-        private readonly IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> _deleteMassiveValidator;
+        private readonly IGenericValidator<InstrumentUpdateCommand, Instrument> _updateValidator;
+        private readonly IGenericValidator<InstrumentCreateCommand, bool> _createValidator;
+        private readonly IGenericValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> _deleteMassiveValidator;
 
         public InstrumentUseCase(
             IInstrumentsRepositoryPort instrumentsRepositoryPorts,
-            IInstrumentValidator<InstrumentUpdateCommand, Instrument> updateValidator,
-            IInstrumentValidator<InstrumentCreateCommand, bool> createValidator,
-            IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> deleteMassiveValidator,
+            IGenericValidator<InstrumentUpdateCommand, Instrument> updateValidator,
+            IGenericValidator<InstrumentCreateCommand, bool> createValidator,
+            IGenericValidator<InstrumentDeleteMultipleCommand, IList<Instrument>> deleteMassiveValidator,
             ILogger<InstrumentUseCase> logger,
             IUnitOfWork unitOfWork,
             DomainEventsCollector events

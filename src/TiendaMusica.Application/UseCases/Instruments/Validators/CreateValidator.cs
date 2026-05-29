@@ -4,18 +4,18 @@ using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
-namespace TiendaMusica.Application.UseCases.Validators.Instruments
+namespace TiendaMusica.Application.UseCases.Instruments.Validators
 {
-    public class InstrumentCreateValidator : IInstrumentValidator<InstrumentCreateCommand, bool>
+    public class CreateValidator : IGenericValidator<InstrumentCreateCommand, bool>
     {
         private readonly IInstrumentsRepositoryPort _repository;
         private readonly IInstrumentValidationService _validationService;
-        private readonly ILogger<InstrumentCreateValidator> _logger;
+        private readonly ILogger<CreateValidator> _logger;
 
-        public InstrumentCreateValidator(
+        public CreateValidator(
             IInstrumentsRepositoryPort repository,
             IInstrumentValidationService validationService,
-            ILogger<InstrumentCreateValidator> logger
+            ILogger<CreateValidator> logger
             )
         {
             _repository = repository;
