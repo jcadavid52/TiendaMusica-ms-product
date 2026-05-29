@@ -1,5 +1,8 @@
-﻿namespace TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq.Config
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq.Config
 {
+    [ExcludeFromCodeCoverage]
     public class RabbitMqConfig
     {
         public string Host { get; set; } = string.Empty;
