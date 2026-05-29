@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -7,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using StackExchange.Redis;
+using System.Threading.RateLimiting;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -65,6 +68,8 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
 
                 ActiveDb = activeDb;
 
+                DisableRateLimitingForTests(services);
+
             });
         }
 
@@ -96,6 +101,25 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             foreach (var d in descriptors) services.Remove(d);
 
             services.AddScoped<ICachePort, NullCacheAdapter>();
+        }
+
+        private static void DisableRateLimitingForTests(IServiceCollection services)
+        {
+            var configureOptions = services.Where(d =>
+                d.ServiceType == typeof(IConfigureOptions<RateLimiterOptions>)).ToList();
+            foreach (var d in configureOptions) services.Remove(d);
+
+            services.Configure<RateLimiterOptions>(options =>
+            {
+                options.AddPolicy("write", httpContext =>
+                    RateLimitPartition.GetNoLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous"));
+                options.AddPolicy("read", httpContext =>
+                    RateLimitPartition.GetNoLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous"));
+                options.AddPolicy("fixed", httpContext =>
+                    RateLimitPartition.GetNoLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous"));
+                options.AddPolicy("sliding", httpContext =>
+                    RateLimitPartition.GetNoLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous"));
+            });
         }
 
         public async Task<IList<InstrumentCommonInfoDto>> GetAllInstrumentDatabase()

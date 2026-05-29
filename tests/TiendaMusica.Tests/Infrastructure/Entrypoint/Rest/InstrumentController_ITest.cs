@@ -5,6 +5,7 @@ using System.Collections;
 using System.Text;
 using TiendaMusica.Application.Dtos;
 using TiendaMusica.Application.UseCases.Instruments;
+using TiendaMusica.Domain.Dtos;
 using TiendaMusica.Domain.Enums;
 using TiendaMusica.Domain.Models;
 using TiendaMusica.Domain.Models.Result;
@@ -151,9 +152,9 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             int codeExpected = 500;
 
             // Act
-            var errorClient = CreateErrorClientWithMockedUseCase<IInstrumentUseCase>(mock =>
+            var errorClient = CreateErrorClientWithMockedUseCase(mock =>
             {
-                mock.Setup(m => m.GetAllAsync(null))
+                mock.Setup(m => m.GetAllAsync(It.IsAny<InstrumentGetAllQueryParametersDto>()))
                     .ReturnsAsync(new Results<IList<Instrument>>
                     {
                         Errors = new List<TiendaMusicaError>
@@ -246,7 +247,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             var content = new StringContent(JsonConvert.SerializeObject(newInstrument), Encoding.UTF8, "application/json");
 
             // Act
-            var errorClient = CreateErrorClientWithMockedUseCase<IInstrumentUseCase>(mock =>
+            var errorClient = CreateErrorClientWithMockedUseCase(mock =>
             {
                 mock.Setup(m => m.CreateAsync(It.IsAny<InstrumentCreateCommand>()))
                     .ReturnsAsync(new Results<Instrument>
@@ -321,7 +322,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             string url = $"/v1/instrument/test-id";
             int codeExpected = 500;
 
-            var errorClient = CreateErrorClientWithMockedUseCase<IInstrumentUseCase>(mock =>
+            var errorClient = CreateErrorClientWithMockedUseCase(mock =>
             {
                 mock.Setup(m => m.GetByIdAsync(It.IsAny<string>()))
                     .ReturnsAsync(new Results<Instrument>
@@ -424,7 +425,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             var content = new StringContent(JsonConvert.SerializeObject(deleteRequest), Encoding.UTF8, "application/json");
             int codeExpected = 500;
 
-            var errorClient = CreateErrorClientWithMockedUseCase<IInstrumentUseCase>(mock =>
+            var errorClient = CreateErrorClientWithMockedUseCase(mock =>
             {
                 mock.Setup(m => m.DeleteMultipleAsync(It.IsAny<InstrumentDeleteMultipleCommand>()))
                     .ReturnsAsync(new Results<int>
@@ -518,28 +519,28 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             Assert.Equal(codeExpected, (int)response.StatusCode);
         }
 
-        //[Theory]
-        //[ClassData(typeof(UpdateValidationTestData))]
-        //public async Task UpdateAsync_WhenRequestContainsErrors_ShouldReturnFailureResultStatus400(InstrumentUpdateRequest request, Results<InstrumentResponse> expected)
-        //{
-        //    // Arrange
-        //    var url = $"/v1/instrument/{request.Id}";
-        //    var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-        //    int codeExpected = 400;
+        [Theory]
+        [ClassData(typeof(UpdateValidationTestData))]
+        public async Task UpdateAsync_WhenRequestContainsErrors_ShouldReturnFailureResultStatus400(InstrumentUpdateRequest request, Results<InstrumentResponse> expected)
+        {
+            // Arrange
+            var url = $"/v1/instrument/{request.Id}";
+            var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+            int codeExpected = 400;
 
-        //    // Act
-        //    var response = await _client.PutAsync(url, content);
-        //    var responseString = await response.Content.ReadAsStringAsync();
-        //    var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
+            // Act
+            var response = await _client.PutAsync(url, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+            var responseObject = JsonConvert.DeserializeObject<Results<InstrumentResponse>>(responseString);
 
-        //    // Assert
-        //    Assert.NotNull(response);
-        //    Assert.NotNull(responseObject);
-        //    Assert.Null(responseObject.Result);
-        //    Assert.False(responseObject.IsSuccess);
-        //    Assert.True(responseObject.Errors.Any());
-        //    Assert.Equal(codeExpected, (int)response.StatusCode);
-        //}
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(responseObject);
+            Assert.Null(responseObject.Result);
+            Assert.False(responseObject.IsSuccess);
+            Assert.True(responseObject.Errors.Any());
+            Assert.Equal(codeExpected, (int)response.StatusCode);
+        }
 
         [Fact]
         public async Task UpdateAsync_WhenInstrumentNotExists_ShouldReturnFailureResultStatus404()
@@ -586,7 +587,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             var content = new StringContent(JsonConvert.SerializeObject(updateRequest), Encoding.UTF8, "application/json");
             int codeExpected = 500;
 
-            var errorClient = CreateErrorClientWithMockedUseCase<IInstrumentUseCase>(mock =>
+            var errorClient = CreateErrorClientWithMockedUseCase(mock =>
             {
                 mock.Setup(m => m.UpdateAsync(It.IsAny<InstrumentUpdateCommand>()))
                     .ReturnsAsync(new Results<Instrument>
@@ -612,7 +613,7 @@ namespace TiendaMusica.Tests.Infrastructure.Entrypoint.Rest
             Assert.Equal(codeExpected, (int)response.StatusCode);
         }
 
-        private HttpClient CreateErrorClientWithMockedUseCase<T>(Action<Mock<IInstrumentUseCase>> setupMock) where T : class
+        private HttpClient CreateErrorClientWithMockedUseCase(Action<Mock<IInstrumentUseCase>> setupMock)
         {
             return _factory.WithWebHostBuilder(builder =>
             {

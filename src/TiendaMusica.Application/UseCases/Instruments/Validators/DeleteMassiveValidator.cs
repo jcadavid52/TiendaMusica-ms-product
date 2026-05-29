@@ -5,18 +5,18 @@ using TiendaMusica.Domain.Models.Result;
 using TiendaMusica.Domain.Ports;
 using TiendaMusica.Domain.Services;
 
-namespace TiendaMusica.Application.UseCases.Validators.Instruments
+namespace TiendaMusica.Application.UseCases.Instruments.Validators
 {
-    public class InstrumentDeleteMassiveValidator : IInstrumentValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>
+    public class DeleteMassiveValidator : IGenericValidator<InstrumentDeleteMultipleCommand, IList<Instrument>>
     {
         private readonly IInstrumentsRepositoryPort _repository;
         private readonly IInstrumentValidationService _validationService;
-        private readonly ILogger<InstrumentDeleteMassiveValidator> _logger;
+        private readonly ILogger<DeleteMassiveValidator> _logger;
 
-        public InstrumentDeleteMassiveValidator(
+        public DeleteMassiveValidator(
             IInstrumentsRepositoryPort repository,
             IInstrumentValidationService validationService,
-            ILogger<InstrumentDeleteMassiveValidator> logger
+            ILogger<DeleteMassiveValidator> logger
             )
         {
             _repository = repository;
