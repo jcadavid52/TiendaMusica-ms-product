@@ -97,6 +97,17 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
 
                     return results;
                 }
+                catch (DbUpdateException ex) when (ex.InnerException != null && IsUniqueConstraintViolation(ex))
+                {
+                    if (transaction != null)
+                        await transaction.RollbackAsync(cancellationToken);
+                    results.AddError(ErrorCode.CONFLICT_ERROR, $"Ya existe un producto con el mismo nombre");
+                    results.Result = false;
+
+                    _logger.LogError(ex, "Unique constraint violation while saving changes. Transaction rolled back.");
+
+                    return results;
+                }
                 catch (Exception ex)
                 {
                     if (transaction != null)
@@ -117,6 +128,21 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
                     }
                 }
             });
+        }
+        private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+        {
+            const int uniqueIndexViolation = 2601;
+            const int uniqueConstraintViolation = 2627;
+
+            try
+            {
+                var sqlEx = (dynamic)ex.InnerException!;
+                return sqlEx.Number == uniqueIndexViolation || sqlEx.Number == uniqueConstraintViolation;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
