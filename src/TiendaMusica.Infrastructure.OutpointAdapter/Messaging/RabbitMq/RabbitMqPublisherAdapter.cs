@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using TiendaMusica.Domain.Models.Result;
@@ -7,6 +8,7 @@ using TiendaMusica.Domain.Ports;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Messaging.RabbitMq
 {
+    [ExcludeFromCodeCoverage]
     public class RabbitMqPublisherAdapter : IMessagePublisherPort
     {
         private readonly IConnection _connection;
