@@ -3,19 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Diagnostics.CodeAnalysis;
 using TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer;
 
 #nullable disable
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer.Migrations
 {
-    [ExcludeFromCodeCoverage]
     [DbContext(typeof(InstrumentSqlServerDbContext))]
-    partial class InstrumentSqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529205328_AddUniqueIndexOnProductName")]
+    partial class AddUniqueIndexOnProductName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

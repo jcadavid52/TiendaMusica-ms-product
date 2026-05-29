@@ -32,6 +32,7 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
                 entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.CreationDateUtc).IsRequired();
                 entity.Property(e => e.Stock).IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
                 entity.HasOne(p => p.Category)
                       .WithMany(c => c.Products)
                       .HasForeignKey("CategoryId")
