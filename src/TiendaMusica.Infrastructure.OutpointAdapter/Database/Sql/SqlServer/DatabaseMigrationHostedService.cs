@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +25,17 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
             if (db.Database.IsRelational())
             {
                 _logger.LogInformation("Aplicando migraciones pendientes de SQL Server...");
-                await db.Database.MigrateAsync(cancellationToken);
+
+                try
+                {
+                    await db.Database.MigrateAsync(cancellationToken);
+                }
+                catch (SqlException ex) when (ex.Number == 1801)
+                {
+                    _logger.LogWarning(ex, "La base de datos ya existía. Aplicando migraciones pendientes...");
+                    await db.Database.MigrateAsync(cancellationToken);
+                }
+
                 _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
             }
         }
