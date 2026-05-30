@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Retry;
 
 namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
 {
@@ -24,35 +26,42 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
 
             if (!db.Database.IsRelational()) return;
 
-            _logger.LogInformation("Iniciando proceso de migración de SQL Server...");
+            _logger.LogInformation("Iniciando proceso de migración de SQL Server con Polly...");
 
-            const int maxRetries = 5;
-            int delayMilliseconds = 2000; // Espera 2 segundos antes del primer reintento
+            var migrationPipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions
+                {
+                    ShouldHandle = new PredicateBuilder().Handle<SqlException>(ex => ex.Number == 1801 || ex.Number == 2714),
 
-            for (int retry = 1; retry <= maxRetries; retry++)
+                    BackoffType = DelayBackoffType.Exponential,
+                    MaxRetryAttempts = 5,
+                    Delay = TimeSpan.FromSeconds(2),
+
+                    OnRetry = args =>
+                    {
+                        _logger.LogWarning("Conflicto temporal en la BD (Intento {Intento} de {Max}). Esperando {Tiempo}s para reintentar...",
+                            args.AttemptNumber + 1,
+                            5,
+                            args.RetryDelay.TotalSeconds);
+
+                        return default;
+                    }
+                })
+                .Build();
+
+            try
             {
-                try
+                await migrationPipeline.ExecuteAsync(async token =>
                 {
-                    // EF Core maneja la existencia de la BD de forma nativa.
-                    await db.Database.MigrateAsync(cancellationToken);
-                    _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
-                    break; // Si tiene éxito, salimos del bucle
-                }
-                catch (SqlException ex) when (ex.Number == 1801 || ex.Number == 2714)
-                {
-                    // 1801 = BD ya existe, 2714 = Tabla ya existe (choques de concurrencia comunes en Docker)
-                    _logger.LogWarning($"Aviso de concurrencia/existencia en BD (Intento {retry}/{maxRetries}). Esperando para reintentar...");
+                    await db.Database.MigrateAsync(token);
+                }, cancellationToken);
 
-                    if (retry == maxRetries) throw; // Si se agotan los intentos, dejamos que falle.
-
-                    await Task.Delay(delayMilliseconds, cancellationToken);
-                    delayMilliseconds *= 2; // Duplica el tiempo de espera en cada fallo (2s, 4s, 8s...)
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error crítico no recuperable durante la migración.");
-                    throw;
-                }
+                _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Polly agotó los reintentos o falló debido a un error no transitorio.");
+                throw;
             }
         }
 
