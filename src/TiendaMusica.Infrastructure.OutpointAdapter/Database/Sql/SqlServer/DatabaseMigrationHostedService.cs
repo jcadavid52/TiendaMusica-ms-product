@@ -22,21 +22,37 @@ namespace TiendaMusica.Infrastructure.OutpointAdapter.Database.Sql.SqlServer
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<InstrumentSqlServerDbContext>();
 
-            if (db.Database.IsRelational())
-            {
-                _logger.LogInformation("Aplicando migraciones pendientes de SQL Server...");
+            if (!db.Database.IsRelational()) return;
 
+            _logger.LogInformation("Iniciando proceso de migración de SQL Server...");
+
+            const int maxRetries = 5;
+            int delayMilliseconds = 2000; // Espera 2 segundos antes del primer reintento
+
+            for (int retry = 1; retry <= maxRetries; retry++)
+            {
                 try
                 {
+                    // EF Core maneja la existencia de la BD de forma nativa.
                     await db.Database.MigrateAsync(cancellationToken);
+                    _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
+                    break; // Si tiene éxito, salimos del bucle
                 }
-                catch (SqlException ex) when (ex.Number == 1801)
+                catch (SqlException ex) when (ex.Number == 1801 || ex.Number == 2714)
                 {
-                    _logger.LogWarning(ex, "La base de datos ya existía. Aplicando migraciones pendientes...");
-                    await db.Database.MigrateAsync(cancellationToken);
-                }
+                    // 1801 = BD ya existe, 2714 = Tabla ya existe (choques de concurrencia comunes en Docker)
+                    _logger.LogWarning($"Aviso de concurrencia/existencia en BD (Intento {retry}/{maxRetries}). Esperando para reintentar...");
 
-                _logger.LogInformation("Migraciones de SQL Server aplicadas exitosamente.");
+                    if (retry == maxRetries) throw; // Si se agotan los intentos, dejamos que falle.
+
+                    await Task.Delay(delayMilliseconds, cancellationToken);
+                    delayMilliseconds *= 2; // Duplica el tiempo de espera en cada fallo (2s, 4s, 8s...)
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error crítico no recuperable durante la migración.");
+                    throw;
+                }
             }
         }
 
